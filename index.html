@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Gateway</title>
     <style>
+        /* Base Styles */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f5f5f5;
@@ -32,6 +33,7 @@
             margin-bottom: 30px;
         }
 
+        /* Form Elements */
         .form-group {
             margin-bottom: 20px;
         }
@@ -77,8 +79,8 @@
             background-color: #f0fff0;
         }
 
+        /* Buttons */
         .btn {
-            background-color: #4CAF50;
             color: white;
             border: none;
             padding: 15px;
@@ -90,10 +92,23 @@
             transition: background-color 0.3s;
         }
 
-        .btn:hover {
+        .btn-primary {
+            background-color: #4CAF50;
+        }
+
+        .btn-primary:hover {
             background-color: #45a049;
         }
 
+        .btn-danger {
+            background-color: #f44336;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Loading Indicator */
         .loading {
             display: none;
             text-align: center;
@@ -115,13 +130,14 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Success Animation */
-        .success-animation {
+        /* Status Animations */
+        .status-animation {
             display: none;
             text-align: center;
             padding: 40px 0;
         }
-        
+
+        /* Success Animation */
         .checkmark {
             width: 100px;
             height: 100px;
@@ -134,7 +150,7 @@
             box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
             animation: checkmark-scale 0.3s ease-in-out 0.9s both;
         }
-        
+
         .checkmark-circle {
             stroke-dasharray: 166;
             stroke-dashoffset: 166;
@@ -144,63 +160,118 @@
             fill: none;
             animation: checkmark-stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
         }
-        
+
         .checkmark-check {
             transform-origin: 50% 50%;
             stroke-dasharray: 48;
             stroke-dashoffset: 48;
             animation: checkmark-stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
         }
-        
+
+        /* Failure Animation */
+        .crossmark {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 5;
+            stroke: #f44336;
+            stroke-miterlimit: 10;
+            margin: 0 auto;
+            box-shadow: 0 0 0 rgba(244, 67, 54, 0.4);
+            animation: crossmark-scale 0.3s ease-in-out 0.9s both;
+        }
+
+        .crossmark-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 5;
+            stroke-miterlimit: 10;
+            stroke: #f44336;
+            fill: none;
+            animation: crossmark-stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .crossmark-cross {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: crossmark-stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        /* Animation Keyframes */
         @keyframes checkmark-stroke {
-            100% {
-                stroke-dashoffset: 0;
-            }
+            100% { stroke-dashoffset: 0; }
         }
-        
+
         @keyframes checkmark-scale {
-            0%, 100% {
-                transform: none;
-            }
-            50% {
-                transform: scale3d(1.1, 1.1, 1);
-            }
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
         }
-        
-        .success-message {
-            color: #4CAF50;
+
+        @keyframes crossmark-stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes crossmark-scale {
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
+        }
+
+        .status-message {
             font-size: 24px;
             font-weight: bold;
             margin-top: 20px;
             opacity: 0;
             animation: fadeIn 0.3s ease-in-out 1.2s forwards;
         }
-        
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
+
+        .success-message {
+            color: #4CAF50;
         }
 
-        /* Invoice Page */
+        .failed-message {
+            color: #f44336;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Invoice Pages */
         .invoice-page {
             display: none;
         }
 
         .invoice-header {
-            color: #4CAF50;
             text-align: center;
             font-size: 20px;
             margin-bottom: 20px;
             font-weight: bold;
         }
 
+        .success-header {
+            color: #4CAF50;
+        }
+
+        .failed-header {
+            color: #f44336;
+        }
+
         .invoice-details {
             margin-top: 30px;
             padding: 20px;
-            border: 1px solid #4CAF50;
             border-radius: 10px;
+        }
+
+        .success-details {
+            border: 1px solid #4CAF50;
             background-color: #f9fff9;
+        }
+
+        .failed-details {
+            border: 1px solid #f44336;
+            background-color: #ffebee;
         }
 
         .detail-row {
@@ -214,6 +285,13 @@
         .detail-label {
             font-weight: bold;
             color: #555;
+        }
+
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -246,23 +324,32 @@
             <p>Processing payment...</p>
         </div>
 
-        <button class="btn" onclick="processPayment()">Pay Now</button>
+        <button class="btn btn-primary" onclick="processPayment()">Pay Now</button>
     </div>
 
     <!-- Success Animation -->
-    <div class="container success-animation" id="successAnimation">
+    <div class="container status-animation" id="successAnimation">
         <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
             <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
             <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
         </svg>
-        <div class="success-message">Payment Successful!</div>
+        <div class="status-message success-message">Payment Successful!</div>
     </div>
 
-    <!-- Invoice Page -->
+    <!-- Failure Animation -->
+    <div class="container status-animation" id="failedAnimation">
+        <svg class="crossmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <circle class="crossmark-circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="crossmark-cross" fill="none" d="M16 16 36 36 M36 16 16 36"/>
+        </svg>
+        <div class="status-message failed-message">Payment Failed!</div>
+    </div>
+
+    <!-- Success Invoice Page -->
     <div class="container invoice-page" id="invoicePage">
-        <div class="invoice-header">Payment Receipt</div>
+        <div class="invoice-header success-header">Payment Receipt</div>
         
-        <div class="invoice-details">
+        <div class="invoice-details success-details">
             <div class="detail-row">
                 <span class="detail-label">Invoice Number:</span>
                 <span id="invoiceNumber"></span>
@@ -301,7 +388,43 @@
             </div>
         </div>
 
-        <button class="btn" style="margin-top: 20px;" onclick="resetForm()">New Payment</button>
+        <button class="btn btn-primary" style="margin-top: 20px;" onclick="resetForm()">New Payment</button>
+    </div>
+
+    <!-- Failed Payment Page -->
+    <div class="container invoice-page" id="failedPage">
+        <div class="invoice-header failed-header">Payment Failed</div>
+        
+        <div class="invoice-details failed-details">
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Invoice Number:</span>
+                <span id="failedInvoiceNumber"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Bill Number:</span>
+                <span id="failedBillNumber"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Payment Method:</span>
+                <span id="failedPaymentMethod"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span id="failedPaymentAmount"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span id="failedPaymentDate"></span>
+            </div>
+            <div class="detail-row" style="border-bottom: none;">
+                <span class="detail-label">Status:</span>
+                <span style="color: #f44336; font-weight: bold;">Failed</span>
+            </div>
+        </div>
+
+        <button class="btn btn-danger" style="margin-top: 20px;" onclick="resetForm()">Try Again</button>
     </div>
 
     <script>
@@ -397,18 +520,60 @@
             }, 2000); // Show invoice after 2 seconds
         }
 
+        // Show failed animation then error details
+        function showPaymentFailed(errorData) {
+            // Hide payment form
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('loadingIndicator').style.display = 'none';
+            
+            // Show failed animation
+            const failedAnim = document.getElementById('failedAnimation');
+            failedAnim.style.display = 'block';
+            
+            // After animation completes, show error details
+            setTimeout(() => {
+                failedAnim.style.display = 'none';
+                document.getElementById('failedPage').style.display = 'block';
+                
+                // Format amount with 2 decimal places
+                const amount = errorData.amount ? 
+                    parseFloat(errorData.amount).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }) : '1,299.00';
+                
+                // Get payment method display text
+                const paymentMethod = errorData.paymentMethod === 'card' ? 
+                    'Credit/Debit Card' : 'QR Code Payment';
+                
+                // Populate error details
+                document.getElementById('errorMessage').textContent = 
+                    errorData.message || 'Payment processing failed';
+                document.getElementById('failedInvoiceNumber').textContent = 
+                    errorData.invoiceNumber || generateInvoiceNumber();
+                document.getElementById('failedBillNumber').textContent = 
+                    errorData.billNumber || document.getElementById('billNumber').value;
+                document.getElementById('failedPaymentMethod').textContent = paymentMethod;
+                document.getElementById('failedPaymentAmount').textContent = '₹' + amount;
+                document.getElementById('failedPaymentDate').textContent = getCurrentDate();
+            }, 2000); // Show error after 2 seconds
+        }
+
         // Reset form for new payment
         function resetForm() {
             document.getElementById('invoicePage').style.display = 'none';
+            document.getElementById('failedPage').style.display = 'none';
             document.getElementById('successAnimation').style.display = 'none';
+            document.getElementById('failedAnimation').style.display = 'none';
             document.getElementById('paymentForm').style.display = 'block';
             document.getElementById('billNumber').value = '';
             document.querySelectorAll('.payment-mode').forEach(m => m.classList.remove('selected'));
             document.getElementById('selectedPaymentMode').value = '';
         }
 
-        // Expose showInvoice to Android
+        // Expose functions to Android
         window.showInvoice = showInvoice;
+        window.showPaymentFailed = showPaymentFailed;
     </script>
 </body>
 </html>
