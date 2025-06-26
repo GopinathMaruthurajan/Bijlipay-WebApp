@@ -3,577 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Gateway</title>
+    <title>Payment Portal</title>
     <style>
-        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #f5f5f5;
             min-height: 100vh;
         }
-
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .back-arrow {
+            position: absolute;
+            left: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        .logo {
+            height: 40px;
+        }
+        
         .container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
             background-color: white;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            margin: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
         }
-
-        h1 {
+        
+        .page-title {
             color: #333;
+            margin: 0 0 25px 0;
+            font-size: 22px;
             text-align: center;
-            margin-bottom: 30px;
+            font-weight: 600;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
-
-        /* Form Elements */
+        
+        /* Payment Gateway Styles */
+        .payment-form {
+            margin-top: 20px;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
-
-        label {
+        
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 500;
             color: #555;
+            font-size: 15px;
         }
-
-        input, select {
+        
+        .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
-            box-sizing: border-box;
         }
-
-        .payment-modes {
+        
+        .payment-methods {
+            margin: 25px 0;
+        }
+        
+        .payment-methods h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .payment-method {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .payment-mode {
-            flex: 1;
-            text-align: center;
-            padding: 15px;
+            align-items: center;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            margin-bottom: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
-
-        .payment-mode:hover {
+        
+        .payment-method:hover {
             border-color: #4CAF50;
         }
-
-        .payment-mode.selected {
+        
+        .payment-method.selected {
             border-color: #4CAF50;
-            background-color: #f0fff0;
+            background-color: #f8fcf8;
         }
-
-        /* Buttons */
-        .btn {
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn-primary {
-            background-color: #4CAF50;
-        }
-
-        .btn-primary:hover {
-            background-color: #45a049;
-        }
-
-        .btn-danger {
-            background-color: #f44336;
-        }
-
-        .btn-danger:hover {
-            background-color: #d32f2f;
-        }
-
-        /* Loading Indicator */
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid #4CAF50;
+        
+        .payment-method-icon {
             width: 30px;
             height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Status Animations */
-        .status-animation {
-            display: none;
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        /* Success Animation */
-        .checkmark {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: block;
-            stroke-width: 5;
-            stroke: #4CAF50;
-            stroke-miterlimit: 10;
-            margin: 0 auto;
-            box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
-            animation: checkmark-scale 0.3s ease-in-out 0.9s both;
-        }
-
-        .checkmark-circle {
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            stroke-width: 5;
-            stroke-miterlimit: 10;
-            stroke: #4CAF50;
-            fill: none;
-            animation: checkmark-stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-
-        .checkmark-check {
-            transform-origin: 50% 50%;
-            stroke-dasharray: 48;
-            stroke-dashoffset: 48;
-            animation: checkmark-stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-        }
-
-        /* Failure Animation */
-        .crossmark {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: block;
-            stroke-width: 5;
-            stroke: #f44336;
-            stroke-miterlimit: 10;
-            margin: 0 auto;
-            box-shadow: 0 0 0 rgba(244, 67, 54, 0.4);
-            animation: crossmark-scale 0.3s ease-in-out 0.9s both;
-        }
-
-        .crossmark-circle {
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            stroke-width: 5;
-            stroke-miterlimit: 10;
-            stroke: #f44336;
-            fill: none;
-            animation: crossmark-stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-
-        .crossmark-cross {
-            transform-origin: 50% 50%;
-            stroke-dasharray: 48;
-            stroke-dashoffset: 48;
-            animation: crossmark-stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-        }
-
-        /* Animation Keyframes */
-        @keyframes checkmark-stroke {
-            100% { stroke-dashoffset: 0; }
-        }
-
-        @keyframes checkmark-scale {
-            0%, 100% { transform: none; }
-            50% { transform: scale3d(1.1, 1.1, 1); }
-        }
-
-        @keyframes crossmark-stroke {
-            100% { stroke-dashoffset: 0; }
-        }
-
-        @keyframes crossmark-scale {
-            0%, 100% { transform: none; }
-            50% { transform: scale3d(1.1, 1.1, 1); }
-        }
-
-        .status-message {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 20px;
-            opacity: 0;
-            animation: fadeIn 0.3s ease-in-out 1.2s forwards;
-        }
-
-        .success-message {
-            color: #4CAF50;
-        }
-
-        .failed-message {
-            color: #f44336;
-        }
-
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        /* Invoice Pages */
-        .invoice-page {
-            display: none;
-        }
-
-        .invoice-header {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .success-header {
-            color: #4CAF50;
-        }
-
-        .failed-header {
-            color: #f44336;
-        }
-
-        .invoice-details {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        .success-details {
-            border: 1px solid #4CAF50;
-            background-color: #f9fff9;
-        }
-
-        .failed-details {
-            border: 1px solid #f44336;
-            background-color: #ffebee;
-        }
-
-        .detail-row {
+            margin-right: 15px;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed #ddd;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
         }
-
-        .detail-label {
-            font-weight: bold;
-            color: #555;
+        
+        .payment-method-name {
+            font-weight: 500;
+            color: #333;
         }
-
-        .error-message {
-            color: #f44336;
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             text-align: center;
-            margin: 15px 0;
-            font-weight: bold;
+        }
+        
+        .btn-pay {
+            background-color: #4CAF50;
+            color: white;
+            margin-top: 25px;
+        }
+        
+        .btn-pay:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-pay:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        /* Menu Page Styles */
+        #mainMenu {
+            text-align: center;
+        }
+        
+        #mainMenu h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        .btn-menu {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-payment {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-payment:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-void {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-void:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Void Section Styles */
+        .void-section {
+            display: none;
+            width: 100%;
+        }
+        
+        .void-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .btn-submit {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background-color: #0b7dda;
+        }
+        
+        .btn-back {
+            background-color: #9E9E9E;
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .btn-back:hover {
+            background-color: #757575;
         }
     </style>
 </head>
 <body>
-    <!-- Payment Form -->
-    <div class="container" id="paymentForm">
-        <h1>Payment Gateway</h1>
-
-        <div class="form-group">
-            <label for="billNumber">Customer Bill Number</label>
-            <input type="text" id="billNumber" placeholder="Enter bill number">
-        </div>
-
-        <label>Payment Mode</label>
-        <div class="payment-modes">
-            <div class="payment-mode" onclick="selectPaymentMode('card')">
-                <img src="https://cdn-icons-png.flaticon.com/512/179/179457.png" width="50" alt="Card">
-                <p>Card</p>
-            </div>
-            <div class="payment-mode" onclick="selectPaymentMode('qr')">
-                <img src="https://cdn-icons-png.flaticon.com/512/3916/3916907.png" width="50" alt="Scan QR">
-                <p>Scan QR</p>
-            </div>
-        </div>
-
-        <input type="hidden" id="selectedPaymentMode" value="">
-
-        <div class="loading" id="loadingIndicator">
-            <div class="spinner"></div>
-            <p>Processing payment...</p>
-        </div>
-
-        <button class="btn btn-primary" onclick="processPayment()">Pay Now</button>
+    <div class="header">
+        <div class="back-arrow" id="backArrow">←</div>
+        <img src="https://via.placeholder.com/150x40?text=Logo" alt="Company Logo" class="logo">
     </div>
-
-    <!-- Success Animation -->
-    <div class="container status-animation" id="successAnimation">
-        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-        </svg>
-        <div class="status-message success-message">Payment Successful!</div>
-    </div>
-
-    <!-- Failure Animation -->
-    <div class="container status-animation" id="failedAnimation">
-        <svg class="crossmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-            <circle class="crossmark-circle" cx="26" cy="26" r="25" fill="none"/>
-            <path class="crossmark-cross" fill="none" d="M16 16 36 36 M36 16 16 36"/>
-        </svg>
-        <div class="status-message failed-message">Payment Failed!</div>
-    </div>
-
-    <!-- Success Invoice Page -->
-    <div class="container invoice-page" id="invoicePage">
-        <div class="invoice-header success-header">Payment Receipt</div>
+    
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="mainMenu">
+            <h1>Select Transaction Type</h1>
+            <button class="btn-menu btn-payment" id="paymentBtn">Make Payment</button>
+            <button class="btn-menu btn-void" id="voidBtn">Void Transaction</button>
+        </div>
         
-        <div class="invoice-details success-details">
-            <div class="detail-row">
-                <span class="detail-label">Invoice Number:</span>
-                <span id="invoiceNumber"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Bill Number:</span>
-                <span id="displayBillNumber"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Payment Method:</span>
-                <span id="paymentMethod"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span id="paymentAmount"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Date:</span>
-                <span id="paymentDate"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Transaction ID:</span>
-                <span id="transactionId"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Terminal ID:</span>
-                <span id="terminalId"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Merchant ID:</span>
-                <span id="merchantId"></span>
-            </div>
-            <div class="detail-row" style="border-bottom: none;">
-                <span class="detail-label">Status:</span>
-                <span style="color: #4CAF50; font-weight: bold;">Completed</span>
-            </div>
-        </div>
-
-        <button class="btn btn-primary" style="margin-top: 20px;" onclick="resetForm()">New Payment</button>
-    </div>
-
-    <!-- Failed Payment Page -->
-    <div class="container invoice-page" id="failedPage">
-        <div class="invoice-header failed-header">Payment Failed</div>
-        
-        <div class="invoice-details failed-details">
-            <div class="error-message" id="errorMessage"></div>
+        <!-- Payment Gateway Section -->
+        <div id="paymentSection" class="payment-form" style="display: none;">
+            <h2 class="page-title">Payment Gateway</h2>
             
-            <div class="detail-row">
-                <span class="detail-label">Invoice Number:</span>
-                <span id="failedInvoiceNumber"></span>
+            <div class="form-group">
+                <label for="billNumber">Customer Bill Number</label>
+                <input type="text" id="billNumber" placeholder="Enter bill number">
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Bill Number:</span>
-                <span id="failedBillNumber"></span>
+            
+            <div class="payment-methods">
+                <h3>Payment Mode</h3>
+                
+                <div class="payment-method selected" data-method="visa">
+                    <div class="payment-method-icon">💳</div>
+                    <div class="payment-method-name">VISA</div>
+                </div>
+                
+                <div class="payment-method" data-method="card">
+                    <div class="payment-method-icon">🏦</div>
+                    <div class="payment-method-name">Card</div>
+                </div>
+                
+                <div class="payment-method" data-method="qr">
+                    <div class="payment-method-icon">📱</div>
+                    <div class="payment-method-name">Scan QR</div>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Payment Method:</span>
-                <span id="failedPaymentMethod"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span id="failedPaymentAmount"></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Date:</span>
-                <span id="failedPaymentDate"></span>
-            </div>
-            <div class="detail-row" style="border-bottom: none;">
-                <span class="detail-label">Status:</span>
-                <span style="color: #f44336; font-weight: bold;">Failed</span>
-            </div>
+            
+            <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
         </div>
-
-        <button class="btn btn-danger" style="margin-top: 20px;" onclick="resetForm()">Try Again</button>
+        
+        <!-- Void Transaction Section -->
+        <div id="voidSection" class="void-section">
+            <h2>Void Transaction</h2>
+            <div class="form-group">
+                <label for="transactionId">Transaction ID</label>
+                <input type="number" id="transactionId" placeholder="Enter transaction ID">
+            </div>
+            <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
+            <button class="btn btn-back" id="backBtn">Back to Menu</button>
+        </div>
     </div>
 
     <script>
-        // Generate random invoice number
-        function generateInvoiceNumber() {
-            return 'INV-' + Math.floor(100000 + Math.random() * 900000);
+        // DOM Elements
+        const paymentBtn = document.getElementById('paymentBtn');
+        const voidBtn = document.getElementById('voidBtn');
+        const voidNowBtn = document.getElementById('voidNowBtn');
+        const backBtn = document.getElementById('backBtn');
+        const backArrow = document.getElementById('backArrow');
+        const mainMenu = document.getElementById('mainMenu');
+        const paymentSection = document.getElementById('paymentSection');
+        const voidSection = document.getElementById('voidSection');
+        const transactionIdInput = document.getElementById('transactionId');
+        const billNumberInput = document.getElementById('billNumber');
+        const payNowBtn = document.getElementById('payNowBtn');
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        
+        // Selected payment method
+        let selectedMethod = 'visa';
+        
+        // Track navigation history
+        let navigationStack = ['main'];
+
+        // Event Listeners
+        paymentBtn.addEventListener('click', showPaymentSection);
+        voidBtn.addEventListener('click', showVoidSection);
+        voidNowBtn.addEventListener('click', handleVoid);
+        backBtn.addEventListener('click', showMainMenu);
+        backArrow.addEventListener('click', handleBackNavigation);
+        billNumberInput.addEventListener('input', validatePaymentForm);
+        
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', () => {
+                paymentMethods.forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+                selectedMethod = method.dataset.method;
+            });
+        });
+        
+        payNowBtn.addEventListener('click', processPayment);
+
+        // Functions
+        function showPaymentSection() {
+            navigationStack.push('payment');
+            mainMenu.style.display = 'none';
+            voidSection.style.display = 'none';
+            paymentSection.style.display = 'block';
+            billNumberInput.focus();
         }
 
-        // Get current date in readable format
-        function getCurrentDate() {
-            const now = new Date();
-            const options = {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            return now.toLocaleDateString('en-IN', options);
+        function showVoidSection() {
+            navigationStack.push('void');
+            mainMenu.style.display = 'none';
+            paymentSection.style.display = 'none';
+            voidSection.style.display = 'block';
+            transactionIdInput.focus();
         }
 
-        // Payment mode selection
-        function selectPaymentMode(mode) {
-            const modes = document.querySelectorAll('.payment-mode');
-            modes.forEach(m => m.classList.remove('selected'));
-
-            const selectedMode = document.querySelector(`.payment-mode[onclick="selectPaymentMode('${mode}')"]`);
-            selectedMode.classList.add('selected');
-
-            document.getElementById('selectedPaymentMode').value = mode;
+        function showMainMenu() {
+            navigationStack.pop();
+            paymentSection.style.display = 'none';
+            voidSection.style.display = 'none';
+            mainMenu.style.display = 'block';
+            billNumberInput.value = '';
+            transactionIdInput.value = '';
         }
 
-        // Process payment using payment:// scheme
+        function validatePaymentForm() {
+            const billNumber = billNumberInput.value.trim();
+            payNowBtn.disabled = billNumber.length === 0;
+        }
+
         function processPayment() {
-            const billNumber = document.getElementById('billNumber').value;
-            const paymentMode = document.getElementById('selectedPaymentMode').value;
-
+            const billNumber = billNumberInput.value.trim();
+            
             if (!billNumber) {
-                alert('Please enter bill number');
+                alert('Please enter a valid bill number');
                 return;
             }
+            
+            // Initiate payment
+            window.location.href = `payment://?billNumber=${billNumber}&paymentMethod=${selectedMethod}`;
+        }
 
-            if (!paymentMode) {
-                alert('Please select payment mode');
+        function handleVoid() {
+            const transactionId = transactionIdInput.value.trim();
+            
+            if (!transactionId) {
+                alert('Please enter a valid transaction ID');
                 return;
             }
-
-            // Show loading indicator
-            document.getElementById('loadingIndicator').style.display = 'block';
-
-            // Redirect to payment app
-            window.location.href = `payment://pay?billNumber=${encodeURIComponent(billNumber)}&amount=1299`;
+            
+            if (!/^\d+$/.test(transactionId)) {
+                alert('Transaction ID must contain only numbers');
+                return;
+            }
+            
+            // Initiate void transaction
+            window.location.href = `void://?transactionId=${transactionId}`;
         }
 
-        // Show success animation then invoice
-        function showInvoice(paymentData) {
-            // Hide payment form
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('loadingIndicator').style.display = 'none';
-            
-            // Show success animation
-            const successAnim = document.getElementById('successAnimation');
-            successAnim.style.display = 'block';
-            
-            // After animation completes, show invoice
-            setTimeout(() => {
-                successAnim.style.display = 'none';
-                document.getElementById('invoicePage').style.display = 'block';
+        function handleBackNavigation() {
+            if (navigationStack.length > 1) {
+                const currentPage = navigationStack.pop();
                 
-                // Format amount with 2 decimal places
-                const amount = paymentData.amount ? 
-                    parseFloat(paymentData.amount).toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }) : '1,299.00';
-                
-                // Get payment method display text
-                const paymentMethod = paymentData.paymentMethod === 'card' ? 
-                    'Credit/Debit Card' : 'QR Code Payment';
-                
-                // Populate invoice details
-                document.getElementById('invoiceNumber').textContent = 
-                    paymentData.invoiceNumber || generateInvoiceNumber();
-                document.getElementById('displayBillNumber').textContent = 
-                    paymentData.billNumber || document.getElementById('billNumber').value;
-                document.getElementById('paymentMethod').textContent = paymentMethod;
-                document.getElementById('paymentAmount').textContent = '₹' + amount;
-                document.getElementById('paymentDate').textContent = getCurrentDate();
-                document.getElementById('transactionId').textContent = 
-                    paymentData.txnId || 'TXN' + Math.floor(10000000 + Math.random() * 90000000);
-                document.getElementById('terminalId').textContent = paymentData.tid || 'N/A';
-                document.getElementById('merchantId').textContent = paymentData.mid || 'N/A';
-            }, 2000); // Show invoice after 2 seconds
+                if (currentPage === 'void' || currentPage === 'payment') {
+                    showMainMenu();
+                }
+            } else {
+                if (typeof Android !== 'undefined' && Android.goBack) {
+                    Android.goBack();
+                } else {
+                    window.history.back();
+                }
+            }
         }
 
-        // Show failed animation then error details
-        function showPaymentFailed(errorData) {
-            // Hide payment form
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('loadingIndicator').style.display = 'none';
-            
-            // Show failed animation
-            const failedAnim = document.getElementById('failedAnimation');
-            failedAnim.style.display = 'block';
-            
-            // After animation completes, show error details
-            setTimeout(() => {
-                failedAnim.style.display = 'none';
-                document.getElementById('failedPage').style.display = 'block';
-                
-                // Format amount with 2 decimal places
-                const amount = errorData.amount ? 
-                    parseFloat(errorData.amount).toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }) : '1,299.00';
-                
-                // Get payment method display text
-                const paymentMethod = errorData.paymentMethod === 'card' ? 
-                    'Credit/Debit Card' : 'QR Code Payment';
-                
-                // Populate error details
-                document.getElementById('errorMessage').textContent = 
-                    errorData.message || 'Payment processing failed';
-                document.getElementById('failedInvoiceNumber').textContent = 
-                    errorData.invoiceNumber || generateInvoiceNumber();
-                document.getElementById('failedBillNumber').textContent = 
-                    errorData.billNumber || document.getElementById('billNumber').value;
-                document.getElementById('failedPaymentMethod').textContent = paymentMethod;
-                document.getElementById('failedPaymentAmount').textContent = '₹' + amount;
-                document.getElementById('failedPaymentDate').textContent = getCurrentDate();
-            }, 2000); // Show error after 2 seconds
+        // Functions called from Android
+        function showInvoice(data) {
+            alert('Transaction Successful!\n\n' + formatDataForDisplay(data));
+            navigationStack = ['main'];
+            showMainMenu();
         }
 
-        // Reset form for new payment
-        function resetForm() {
-            document.getElementById('invoicePage').style.display = 'none';
-            document.getElementById('failedPage').style.display = 'none';
-            document.getElementById('successAnimation').style.display = 'none';
-            document.getElementById('failedAnimation').style.display = 'none';
-            document.getElementById('paymentForm').style.display = 'block';
-            document.getElementById('billNumber').value = '';
-            document.querySelectorAll('.payment-mode').forEach(m => m.classList.remove('selected'));
-            document.getElementById('selectedPaymentMode').value = '';
+        function showPaymentFailed(data) {
+            alert('Transaction Failed!\n\n' + (data.message || 'Unknown error occurred'));
+            navigationStack = ['main'];
+            showMainMenu();
         }
 
-        // Expose functions to Android
-        window.showInvoice = showInvoice;
-        window.showPaymentFailed = showPaymentFailed;
+        function formatDataForDisplay(data) {
+            try {
+                const obj = typeof data === 'string' ? JSON.parse(data) : data;
+                return `Transaction ID: ${obj.txnId || 'N/A'}\n` +
+                       `Amount: $${obj.amount || '0.00'}\n` +
+                       `Status: ${obj.status || 'Approved'}\n` +
+                       `TID: ${obj.tid || 'N/A'}\n` +
+                       `MID: ${obj.mid || 'N/A'}`;
+            } catch (e) {
+                return JSON.stringify(data);
+            }
+        }
+        
+        // Initialize form validation
+        validatePaymentForm();
     </script>
 </body>
 </html>
