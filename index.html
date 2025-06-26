@@ -33,10 +33,13 @@
             font-size: 24px;
             cursor: pointer;
             color: #333;
+            display: none;
         }
         
         .logo {
             height: 40px;
+            width: auto;
+            max-width: 150px;
         }
         
         .container {
@@ -59,7 +62,6 @@
             border-bottom: 1px solid #eee;
         }
         
-        /* Payment Gateway Styles */
         .payment-form {
             margin-top: 20px;
         }
@@ -157,7 +159,6 @@
             cursor: not-allowed;
         }
         
-        /* Menu Page Styles */
         #mainMenu {
             text-align: center;
         }
@@ -199,7 +200,6 @@
             background-color: #d32f2f;
         }
         
-        /* Void Section Styles */
         .void-section {
             display: none;
             width: 100%;
@@ -235,7 +235,7 @@
 <body>
     <div class="header">
         <div class="back-arrow" id="backArrow">←</div>
-        <img src="https://via.placeholder.com/150x40?text=Logo" alt="Company Logo" class="logo">
+        <img src="logo.png" alt="BijliPay Logo" class="logo">
     </div>
     
     <div class="container">
@@ -256,8 +256,9 @@
             </div>
             
             <div class="payment-methods">
-                <h3>Payment Mode</h3>    
-                <div class="payment-method" data-method="card">
+                <h3>Payment Mode</h3>
+                
+                <div class="payment-method selected" data-method="card">
                     <div class="payment-method-icon">🏦</div>
                     <div class="payment-method-name">Card</div>
                 </div>
@@ -299,7 +300,7 @@
         const paymentMethods = document.querySelectorAll('.payment-method');
         
         // Selected payment method
-        let selectedMethod = 'visa';
+        let selectedMethod = 'card';
         
         // Track navigation history
         let navigationStack = ['main'];
@@ -328,6 +329,7 @@
             mainMenu.style.display = 'none';
             voidSection.style.display = 'none';
             paymentSection.style.display = 'block';
+            backArrow.style.display = 'block';
             billNumberInput.focus();
         }
 
@@ -336,6 +338,7 @@
             mainMenu.style.display = 'none';
             paymentSection.style.display = 'none';
             voidSection.style.display = 'block';
+            backArrow.style.display = 'block';
             transactionIdInput.focus();
         }
 
@@ -344,6 +347,7 @@
             paymentSection.style.display = 'none';
             voidSection.style.display = 'none';
             mainMenu.style.display = 'block';
+            backArrow.style.display = 'none';
             billNumberInput.value = '';
             transactionIdInput.value = '';
         }
