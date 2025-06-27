@@ -25,6 +25,7 @@
             background-color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: relative;
+            height: 70px;
         }
         
         .back-arrow {
@@ -34,6 +35,7 @@
             cursor: pointer;
             color: #333;
             display: none;
+            padding: 5px;
         }
         
         .logo {
@@ -50,7 +52,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 25px;
-            overflow: hidden; /* Prevents animations from overflowing container */
+            overflow: hidden;
         }
         
         @keyframes fadeIn {
@@ -204,6 +206,7 @@
         .invoice-label {
             color: #666;
             font-weight: 500;
+            min-width: 120px;
         }
         
         .invoice-value {
@@ -231,6 +234,7 @@
         
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
         
         .form-group label {
@@ -247,6 +251,28 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .form-group .error-message {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .form-group.has-error input {
+            border-color: #f44336;
+        }
+        
+        .form-group.has-error .error-message {
+            display: block;
         }
         
         .payment-methods {
@@ -400,6 +426,61 @@
             color: white;
             margin-top: 30px;
         }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px auto;
+                padding: 15px;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 10px;
+            }
+            
+            .back-arrow {
+                left: 10px;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .invoice-container, .invoice-container * {
+                visibility: visible;
+            }
+            .invoice-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+            .btn {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -420,9 +501,15 @@
         <div id="paymentSection" class="payment-form" style="display: none;">
             <div id="paymentFormContainer">
                 <h2 class="page-title">Payment Gateway</h2>
-                <div class="form-group">
+                <div class="form-group" id="billNumberGroup">
                     <label for="billNumber">Customer Bill Number</label>
-                    <input type="number" id="billNumber" placeholder="Enter bill number">
+                    <input type="text" id="billNumber" placeholder="Enter bill number" inputmode="numeric">
+                    <div class="error-message" id="billNumberError">Please enter a valid bill number</div>
+                </div>
+                <div class="form-group" id="amountGroup">
+                    <label for="amount">Amount (₹)</label>
+                    <input type="text" id="amount" placeholder="Enter amount" inputmode="decimal">
+                    <div class="error-message" id="amountError">Please enter a valid amount</div>
                 </div>
                 <div class="payment-methods">
                     <h3>Payment Mode</h3>
@@ -434,7 +521,12 @@
                         <div class="payment-method-icon">📱</div>
                         <div class="payment-method-name">Scan QR</div>
                     </div>
+                    <div class="payment-method" data-method="upi">
+                        <div class="payment-method-icon">💳</div>
+                        <div class="payment-method-name">UPI</div>
+                    </div>
                 </div>
+                <div class="spinner" id="paymentSpinner"></div>
                 <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
             </div>
             
@@ -458,7 +550,7 @@
                         </div>
                          <div class="invoice-row">
                             <span class="invoice-label">Amount:</span>
-                            <span class="invoice-value" id="amount">$0.00</span>
+                            <span class="invoice-value" id="amountPaid">₹0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
@@ -479,6 +571,7 @@
                     </div>
                 </div>
                 <button class="btn btn-new-payment" id="paymentNewPaymentBtn">New Payment</button>
+                <button class="btn btn-back" id="printReceiptBtn">Print Receipt</button>
             </div>
 
              <!-- Payment Failure Container -->
@@ -499,6 +592,10 @@
                         <div class="invoice-row">
                             <span class="invoice-label">Bill Number:</span>
                             <span class="invoice-value" id="failBillNum">N/A</span>
+                        </div>
+                        <div class="invoice-row">
+                            <span class="invoice-label">Amount:</span>
+                            <span class="invoice-value" id="failAmount">₹0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
@@ -522,10 +619,12 @@
         <div id="voidSection" class="void-section">
             <div id="voidFormContainer">
                 <h2>Void Transaction</h2>
-                <div class="form-group">
+                <div class="form-group" id="transactionIdGroup">
                     <label for="transactionId">Transaction ID</label>
-                    <input type="number" id="transactionId" placeholder="Enter transaction ID">
+                    <input type="text" id="transactionId" placeholder="Enter transaction ID" inputmode="numeric">
+                    <div class="error-message" id="transactionIdError">Please enter a valid transaction ID</div>
                 </div>
+                <div class="spinner" id="voidSpinner"></div>
                 <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
                 <button class="btn btn-back" id="backBtn">Back to Menu</button>
             </div>
@@ -546,7 +645,7 @@
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Original Amount:</span>
-                            <span class="invoice-value" id="voidAmount">$0.00</span>
+                            <span class="invoice-value" id="voidAmount">₹0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
@@ -567,6 +666,7 @@
                     </div>
                 </div>
                 <button class="btn btn-new-payment" id="voidNewPaymentBtn">New Payment</button>
+                <button class="btn btn-back" id="printVoidReceiptBtn">Print Receipt</button>
             </div>
 
             <!-- Void Failure Container -->
@@ -583,6 +683,10 @@
                          <div class="invoice-row">
                             <span class="invoice-label">Transaction ID:</span>
                             <span class="invoice-value" id="voidFailTxnId">N/A</span>
+                        </div>
+                        <div class="invoice-row">
+                            <span class="invoice-label">Amount:</span>
+                            <span class="invoice-value" id="voidFailAmount">₹0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
@@ -618,6 +722,8 @@
         const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
         const paymentTryAgainBtn = document.getElementById('paymentTryAgainBtn');
         const voidTryAgainBtn = document.getElementById('voidTryAgainBtn');
+        const printReceiptBtn = document.getElementById('printReceiptBtn');
+        const printVoidReceiptBtn = document.getElementById('printVoidReceiptBtn');
 
         // Sections and Containers
         const paymentSection = document.getElementById('paymentSection');
@@ -632,12 +738,25 @@
         // Inputs and Methods
         const transactionIdInput = document.getElementById('transactionId');
         const billNumberInput = document.getElementById('billNumber');
+        const amountInput = document.getElementById('amount');
         const paymentMethods = document.querySelectorAll('.payment-method');
+        
+        // Form Groups and Errors
+        const transactionIdGroup = document.getElementById('transactionIdGroup');
+        const transactionIdError = document.getElementById('transactionIdError');
+        const billNumberGroup = document.getElementById('billNumberGroup');
+        const billNumberError = document.getElementById('billNumberError');
+        const amountGroup = document.getElementById('amountGroup');
+        const amountError = document.getElementById('amountError');
+        
+        // Spinners
+        const paymentSpinner = document.getElementById('paymentSpinner');
+        const voidSpinner = document.getElementById('voidSpinner');
         
         // Payment Success Invoice Elements
         const txnIdEl = document.getElementById('txnId');
         const billNumEl = document.getElementById('billNum');
-        const amountEl = document.getElementById('amount');
+        const amountPaidEl = document.getElementById('amountPaid');
         const statusEl = document.getElementById('status');
         const tidEl = document.getElementById('tid');
         const midEl = document.getElementById('mid');
@@ -646,6 +765,7 @@
         // Payment Failure Invoice Elements
         const failTxnIdEl = document.getElementById('failTxnId');
         const failBillNumEl = document.getElementById('failBillNum');
+        const failAmountEl = document.getElementById('failAmount');
         const failStatusEl = document.getElementById('failStatus');
         const failReasonEl = document.getElementById('failReason');
         const failDateEl = document.getElementById('failDate');
@@ -660,6 +780,7 @@
 
         // Void Failure Invoice Elements
         const voidFailTxnIdEl = document.getElementById('voidFailTxnId');
+        const voidFailAmountEl = document.getElementById('voidFailAmount');
         const voidFailStatusEl = document.getElementById('voidFailStatus');
         const voidFailReasonEl = document.getElementById('voidFailReason');
         const voidFailDateEl = document.getElementById('voidFailDate');
@@ -676,9 +797,13 @@
         
         // Payment Flow
         billNumberInput.addEventListener('input', validatePaymentForm);
+        amountInput.addEventListener('input', validatePaymentForm);
         payNowBtn.addEventListener('click', processPayment);
         paymentNewPaymentBtn.addEventListener('click', showMainMenu);
         paymentTryAgainBtn.addEventListener('click', showMainMenu);
+        printReceiptBtn.addEventListener('click', printReceipt);
+        printVoidReceiptBtn.addEventListener('click', printVoidReceipt);
+        
         paymentMethods.forEach(method => {
             method.addEventListener('click', () => {
                 paymentMethods.forEach(m => m.classList.remove('selected'));
@@ -688,6 +813,7 @@
         });
 
         // Void Flow
+        transactionIdInput.addEventListener('input', validateVoidForm);
         voidNowBtn.addEventListener('click', handleVoid);
         voidNewPaymentBtn.addEventListener('click', showMainMenu);
         voidTryAgainBtn.addEventListener('click', showMainMenu);
@@ -700,10 +826,13 @@
             voidSection.style.display = 'none';
             mainMenu.style.display = 'block';
             backArrow.style.display = 'none';
-            // Clear input fields
+            // Clear input fields and errors
             billNumberInput.value = '';
+            amountInput.value = '';
             transactionIdInput.value = '';
+            clearErrors();
             validatePaymentForm();
+            validateVoidForm();
         }
 
         function handleBackNavigation() {
@@ -711,7 +840,7 @@
                 navigationStack.pop();
                 showMainMenu();
             } else {
-                window.history.back(); // Fallback for browser navigation
+                window.history.back();
             }
         }
 
@@ -746,24 +875,122 @@
         }
 
         function validatePaymentForm() {
-            payNowBtn.disabled = billNumberInput.value.trim().length === 0;
+            const billNumberValid = /^\d+$/.test(billNumberInput.value.trim());
+            const amountValid = /^\d+(\.\d{1,2})?$/.test(amountInput.value.trim()) && parseFloat(amountInput.value) > 0;
+            
+            if (!billNumberValid) {
+                billNumberGroup.classList.add('has-error');
+            } else {
+                billNumberGroup.classList.remove('has-error');
+            }
+            
+            if (!amountValid && amountInput.value.trim() !== '') {
+                amountGroup.classList.add('has-error');
+            } else {
+                amountGroup.classList.remove('has-error');
+            }
+            
+            payNowBtn.disabled = !(billNumberValid && amountValid);
+        }
+
+        function validateVoidForm() {
+            const transactionIdValid = /^\d+$/.test(transactionIdInput.value.trim());
+            
+            if (!transactionIdValid && transactionIdInput.value.trim() !== '') {
+                transactionIdGroup.classList.add('has-error');
+            } else {
+                transactionIdGroup.classList.remove('has-error');
+            }
+        }
+
+        function clearErrors() {
+            billNumberGroup.classList.remove('has-error');
+            amountGroup.classList.remove('has-error');
+            transactionIdGroup.classList.remove('has-error');
         }
 
         function processPayment() {
             const billNumber = billNumberInput.value.trim();
-            if (!billNumber) return;
-            const paymentUrl = `bijlipay://payment?billNumber=${encodeURIComponent(billNumber)}&method=${encodeURIComponent(selectedMethod)}`;
-            window.location.href = paymentUrl;
+            const amount = amountInput.value.trim();
+            
+            if (!billNumber || !amount) return;
+            
+            // Show loading spinner
+            paymentSpinner.style.display = 'block';
+            payNowBtn.disabled = true;
+            
+            // Simulate API call with timeout
+            setTimeout(() => {
+                paymentSpinner.style.display = 'none';
+                
+                // For demo purposes, randomly decide success/failure
+                const isSuccess = Math.random() > 0.3;
+                
+                if (isSuccess) {
+                    const paymentData = new URLSearchParams();
+                    paymentData.append('txnId', 'TXN' + Math.floor(Math.random() * 1000000));
+                    paymentData.append('billNumber', billNumber);
+                    paymentData.append('amount', amount);
+                    paymentData.append('status', 'Approved');
+                    paymentData.append('tid', 'TID' + Math.floor(Math.random() * 10000));
+                    paymentData.append('mid', 'MID' + Math.floor(Math.random() * 10000));
+                    paymentData.append('date', Date.now());
+                    
+                    showPaymentSuccess(paymentData.toString());
+                } else {
+                    const failureData = new URLSearchParams();
+                    failureData.append('txnId', 'TXN' + Math.floor(Math.random() * 1000000));
+                    failureData.append('billNumber', billNumber);
+                    failureData.append('amount', amount);
+                    failureData.append('status', 'Declined');
+                    failureData.append('reason', ['Insufficient funds', 'Invalid card', 'Network error'][Math.floor(Math.random() * 3)]);
+                    failureData.append('date', Date.now());
+                    
+                    showPaymentFailure(failureData.toString());
+                }
+            }, 2000);
         }
 
         function handleVoid() {
             const transactionId = transactionIdInput.value.trim();
+            
             if (!transactionId || !/^\d+$/.test(transactionId)) {
-                alert('Please enter a valid, numeric transaction ID');
+                transactionIdGroup.classList.add('has-error');
                 return;
             }
-            const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
-            window.location.href = voidUrl;
+            
+            // Show loading spinner
+            voidSpinner.style.display = 'block';
+            voidNowBtn.disabled = true;
+            
+            // Simulate API call with timeout
+            setTimeout(() => {
+                voidSpinner.style.display = 'none';
+                
+                // For demo purposes, randomly decide success/failure
+                const isSuccess = Math.random() > 0.3;
+                
+                if (isSuccess) {
+                    const voidData = new URLSearchParams();
+                    voidData.append('txnId', transactionId);
+                    voidData.append('amount', (Math.random() * 1000).toFixed(2));
+                    voidData.append('status', 'Voided');
+                    voidData.append('tid', 'TID' + Math.floor(Math.random() * 10000));
+                    voidData.append('mid', 'MID' + Math.floor(Math.random() * 10000));
+                    voidData.append('date', Date.now());
+                    
+                    showVoidSuccess(voidData.toString());
+                } else {
+                    const failureData = new URLSearchParams();
+                    failureData.append('txnId', transactionId);
+                    failureData.append('amount', (Math.random() * 1000).toFixed(2));
+                    failureData.append('status', 'Failed');
+                    failureData.append('reason', ['Transaction not found', 'Already voided', 'Network error'][Math.floor(Math.random() * 3)]);
+                    failureData.append('date', Date.now());
+                    
+                    showVoidFailure(failureData.toString());
+                }
+            }, 2000);
         }
 
         function formatEpoch(epoch) {
@@ -776,7 +1003,7 @@
             
             txnIdEl.textContent = params.get('txnId') || 'N/A';
             billNumEl.textContent = params.get('billNumber') || 'N/A';
-            amountEl.textContent = '$' + (params.get('amount') || '0.00');
+            amountPaidEl.textContent = '₹' + (params.get('amount') || '0.00');
             statusEl.textContent = params.get('status') || 'Approved';
             tidEl.textContent = params.get('tid') || 'N/A';
             midEl.textContent = params.get('mid') || 'N/A';
@@ -792,6 +1019,7 @@
 
             failTxnIdEl.textContent = params.get('txnId') || 'N/A';
             failBillNumEl.textContent = params.get('billNumber') || 'N/A';
+            failAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
             failStatusEl.textContent = params.get('status') || 'Failed';
             failReasonEl.textContent = params.get('reason') || 'Unknown error';
             failDateEl.textContent = formatEpoch(params.get('date'));
@@ -805,7 +1033,7 @@
             const params = new URLSearchParams(data);
             
             voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            voidAmountEl.textContent = '$' + (params.get('amount') || '0.00');
+            voidAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
             voidStatusEl.textContent = params.get('status') || 'Voided';
             voidTidEl.textContent = params.get('tid') || 'N/A';
             voidMidEl.textContent = params.get('mid') || 'N/A';
@@ -820,6 +1048,7 @@
             const params = new URLSearchParams(data);
 
             voidFailTxnIdEl.textContent = params.get('txnId') || 'N/A';
+            voidFailAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
             voidFailStatusEl.textContent = params.get('status') || 'Failed';
             voidFailReasonEl.textContent = params.get('reason') || 'Unknown error';
             voidFailDateEl.textContent = formatEpoch(params.get('date'));
@@ -827,6 +1056,14 @@
             voidFormContainer.style.display = 'none';
             voidSuccess.style.display = 'none';
             voidFailure.style.display = 'block';
+        }
+        
+        function printReceipt() {
+            window.print();
+        }
+        
+        function printVoidReceipt() {
+            window.print();
         }
         
         function processUrlCallback() {
@@ -849,6 +1086,7 @@
         
         // --- Initialize ---
         validatePaymentForm();
+        validateVoidForm();
         processUrlCallback();
     </script>
 </body>
