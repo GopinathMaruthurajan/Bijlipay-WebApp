@@ -118,7 +118,6 @@
         
         /* Invoice Styles */
         .invoice-container {
-            display: none;
             margin-top: 20px;
             border: 1px solid #eee;
             border-radius: 8px;
@@ -155,7 +154,7 @@
             font-weight: 600;
         }
         
-        /* Rest of your existing styles */
+        /* Form Styles */
         .page-title {
             color: #333;
             margin: 0 0 25px 0;
@@ -235,6 +234,7 @@
             color: #333;
         }
         
+        /* Button Styles */
         .btn {
             display: block;
             width: 100%;
@@ -576,15 +576,13 @@
                 return;
             }
             
-            // Hide form elements
+            // Hide all form elements
             document.querySelector('#paymentSection .form-group').style.display = 'none';
             document.querySelector('.payment-methods').style.display = 'none';
             payNowBtn.style.display = 'none';
             
-            // Create a unique URL with parameters for Android to intercept
+            // Create payment URL for Android to intercept
             const paymentUrl = `bijlipay://payment?billNumber=${encodeURIComponent(billNumber)}&method=${encodeURIComponent(selectedMethod)}`;
-            
-            // Redirect to the custom URL scheme
             window.location.href = paymentUrl;
         }
 
@@ -601,15 +599,13 @@
                 return;
             }
             
-            // Hide form elements
+            // Hide all form elements
             document.querySelector('#voidSection .form-group').style.display = 'none';
             voidNowBtn.style.display = 'none';
             backBtn.style.display = 'none';
             
-            // Create a unique URL with parameters for Android to intercept
+            // Create void URL for Android to intercept
             const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
-            
-            // Redirect to the custom URL scheme
             window.location.href = voidUrl;
         }
 
