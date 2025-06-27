@@ -909,6 +909,11 @@
             transactionIdGroup.classList.remove('has-error');
         }
 
+        function isAndroidApp() {
+            return /Android/i.test(navigator.userAgent) && 
+                   (typeof Android !== 'undefined' || typeof window.AndroidBridge !== 'undefined');
+        }
+
         function processPayment() {
             const billNumber = billNumberInput.value.trim();
             const amount = amountInput.value.trim();
@@ -919,36 +924,80 @@
             paymentSpinner.style.display = 'block';
             payNowBtn.disabled = true;
             
-            // Simulate API call with timeout
-            setTimeout(() => {
-                paymentSpinner.style.display = 'none';
+            // Prepare payment data
+            const paymentData = {
+                billNumber: billNumber,
+                amount: amount,
+                method: selectedMethod,
+                timestamp: Date.now()
+            };
+            
+            // For Android app
+            if (isAndroidApp()) {
+                // Register callback handler before launching payment
+                window.handlePaymentResult = function(response) {
+                    paymentSpinner.style.display = 'none';
+                    try {
+                        const result = typeof response === 'string' ? JSON.parse(response) : response;
+                        
+                        if (result.status === 'success') {
+                            showPaymentSuccess(result.data);
+                        } else {
+                            showPaymentFailure(result.error || {
+                                status: 'Failed',
+                                reason: result.reason || 'Unknown error'
+                            });
+                        }
+                    } catch (e) {
+                        showPaymentFailure({
+                            status: 'Failed',
+                            reason: 'Invalid response from app'
+                        });
+                    }
+                };
                 
-                // For demo purposes, randomly decide success/failure
-                const isSuccess = Math.random() > 0.3;
-                
-                if (isSuccess) {
-                    const paymentData = new URLSearchParams();
-                    paymentData.append('txnId', 'TXN' + Math.floor(Math.random() * 1000000));
-                    paymentData.append('billNumber', billNumber);
-                    paymentData.append('amount', amount);
-                    paymentData.append('status', 'Approved');
-                    paymentData.append('tid', 'TID' + Math.floor(Math.random() * 10000));
-                    paymentData.append('mid', 'MID' + Math.floor(Math.random() * 10000));
-                    paymentData.append('date', Date.now());
-                    
-                    showPaymentSuccess(paymentData.toString());
+                // Launch payment in Android app
+                if (typeof Android !== 'undefined') {
+                    Android.initiatePayment(JSON.stringify(paymentData));
+                } else if (typeof window.AndroidBridge !== 'undefined') {
+                    window.AndroidBridge.initiatePayment(JSON.stringify(paymentData));
                 } else {
-                    const failureData = new URLSearchParams();
-                    failureData.append('txnId', 'TXN' + Math.floor(Math.random() * 1000000));
-                    failureData.append('billNumber', billNumber);
-                    failureData.append('amount', amount);
-                    failureData.append('status', 'Declined');
-                    failureData.append('reason', ['Insufficient funds', 'Invalid card', 'Network error'][Math.floor(Math.random() * 3)]);
-                    failureData.append('date', Date.now());
-                    
-                    showPaymentFailure(failureData.toString());
+                    // Fallback to deep link
+                    const paymentUrl = `bijlipay://payment?${objectToQueryString(paymentData)}`;
+                    window.location.href = paymentUrl;
                 }
-            }, 2000);
+            } 
+            // For web demo (fallback)
+            else {
+                // Simulate API call with timeout
+                setTimeout(() => {
+                    paymentSpinner.style.display = 'none';
+                    const isSuccess = Math.random() > 0.3;
+                    
+                    if (isSuccess) {
+                        const responseData = {
+                            txnId: 'TXN' + Math.floor(Math.random() * 1000000),
+                            billNumber: billNumber,
+                            amount: amount,
+                            status: 'Approved',
+                            tid: 'TID' + Math.floor(Math.random() * 10000),
+                            mid: 'MID' + Math.floor(Math.random() * 10000),
+                            date: Date.now()
+                        };
+                        showPaymentSuccess(responseData);
+                    } else {
+                        const responseData = {
+                            txnId: 'TXN' + Math.floor(Math.random() * 1000000),
+                            billNumber: billNumber,
+                            amount: amount,
+                            status: 'Declined',
+                            reason: ['Insufficient funds', 'Invalid card', 'Network error'][Math.floor(Math.random() * 3)],
+                            date: Date.now()
+                        };
+                        showPaymentFailure(responseData);
+                    }
+                }, 2000);
+            }
         }
 
         function handleVoid() {
@@ -963,51 +1012,95 @@
             voidSpinner.style.display = 'block';
             voidNowBtn.disabled = true;
             
-            // Simulate API call with timeout
-            setTimeout(() => {
-                voidSpinner.style.display = 'none';
+            const voidData = {
+                transactionId: transactionId,
+                timestamp: Date.now()
+            };
+            
+            // For Android app
+            if (isAndroidApp()) {
+                // Register callback handler before launching void
+                window.handleVoidResult = function(response) {
+                    voidSpinner.style.display = 'none';
+                    try {
+                        const result = typeof response === 'string' ? JSON.parse(response) : response;
+                        
+                        if (result.status === 'success') {
+                            showVoidSuccess(result.data);
+                        } else {
+                            showVoidFailure(result.error || {
+                                status: 'Failed',
+                                reason: result.reason || 'Unknown error'
+                            });
+                        }
+                    } catch (e) {
+                        showVoidFailure({
+                            status: 'Failed',
+                            reason: 'Invalid response from app'
+                        });
+                    }
+                };
                 
-                // For demo purposes, randomly decide success/failure
-                const isSuccess = Math.random() > 0.3;
-                
-                if (isSuccess) {
-                    const voidData = new URLSearchParams();
-                    voidData.append('txnId', transactionId);
-                    voidData.append('amount', (Math.random() * 1000).toFixed(2));
-                    voidData.append('status', 'Voided');
-                    voidData.append('tid', 'TID' + Math.floor(Math.random() * 10000));
-                    voidData.append('mid', 'MID' + Math.floor(Math.random() * 10000));
-                    voidData.append('date', Date.now());
-                    
-                    showVoidSuccess(voidData.toString());
+                // Launch void in Android app
+                if (typeof Android !== 'undefined') {
+                    Android.initiateVoid(JSON.stringify(voidData));
+                } else if (typeof window.AndroidBridge !== 'undefined') {
+                    window.AndroidBridge.initiateVoid(JSON.stringify(voidData));
                 } else {
-                    const failureData = new URLSearchParams();
-                    failureData.append('txnId', transactionId);
-                    failureData.append('amount', (Math.random() * 1000).toFixed(2));
-                    failureData.append('status', 'Failed');
-                    failureData.append('reason', ['Transaction not found', 'Already voided', 'Network error'][Math.floor(Math.random() * 3)]);
-                    failureData.append('date', Date.now());
-                    
-                    showVoidFailure(failureData.toString());
+                    // Fallback to deep link
+                    const voidUrl = `bijlipay://void?${objectToQueryString(voidData)}`;
+                    window.location.href = voidUrl;
                 }
-            }, 2000);
+            }
+            // For web demo (fallback)
+            else {
+                setTimeout(() => {
+                    voidSpinner.style.display = 'none';
+                    const isSuccess = Math.random() > 0.3;
+                    
+                    if (isSuccess) {
+                        const responseData = {
+                            txnId: transactionId,
+                            amount: (Math.random() * 1000).toFixed(2),
+                            status: 'Voided',
+                            tid: 'TID' + Math.floor(Math.random() * 10000),
+                            mid: 'MID' + Math.floor(Math.random() * 10000),
+                            date: Date.now()
+                        };
+                        showVoidSuccess(responseData);
+                    } else {
+                        const responseData = {
+                            txnId: transactionId,
+                            amount: (Math.random() * 1000).toFixed(2),
+                            status: 'Failed',
+                            reason: ['Transaction not found', 'Already voided', 'Network error'][Math.floor(Math.random() * 3)],
+                            date: Date.now()
+                        };
+                        showVoidFailure(responseData);
+                    }
+                }, 2000);
+            }
+        }
+
+        function objectToQueryString(obj) {
+            return Object.keys(obj).map(key => 
+                `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`
+            ).join('&');
         }
 
         function formatEpoch(epoch) {
-            if (!epoch || isNaN(epoch)) return new Date().toISOString().replace('T', ' ').substring(0, 16);
-            return new Date(Number(epoch)).toISOString().replace('T', ' ').substring(0, 16);
+            if (!epoch || isNaN(epoch)) return new Date().toLocaleString();
+            return new Date(Number(epoch)).toLocaleString();
         }
         
         function showPaymentSuccess(data) {
-            const params = new URLSearchParams(data);
-            
-            txnIdEl.textContent = params.get('txnId') || 'N/A';
-            billNumEl.textContent = params.get('billNumber') || 'N/A';
-            amountPaidEl.textContent = '₹' + (params.get('amount') || '0.00');
-            statusEl.textContent = params.get('status') || 'Approved';
-            tidEl.textContent = params.get('tid') || 'N/A';
-            midEl.textContent = params.get('mid') || 'N/A';
-            dateEl.textContent = formatEpoch(params.get('date'));
+            txnIdEl.textContent = data.txnId || 'N/A';
+            billNumEl.textContent = data.billNumber || 'N/A';
+            amountPaidEl.textContent = '₹' + (data.amount || '0.00');
+            statusEl.textContent = data.status || 'Approved';
+            tidEl.textContent = data.tid || 'N/A';
+            midEl.textContent = data.mid || 'N/A';
+            dateEl.textContent = formatEpoch(data.date);
             
             paymentFormContainer.style.display = 'none';
             paymentFailure.style.display = 'none';
@@ -1015,14 +1108,12 @@
         }
 
         function showPaymentFailure(data) {
-            const params = new URLSearchParams(data);
-
-            failTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            failBillNumEl.textContent = params.get('billNumber') || 'N/A';
-            failAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
-            failStatusEl.textContent = params.get('status') || 'Failed';
-            failReasonEl.textContent = params.get('reason') || 'Unknown error';
-            failDateEl.textContent = formatEpoch(params.get('date'));
+            failTxnIdEl.textContent = data.txnId || 'N/A';
+            failBillNumEl.textContent = data.billNumber || 'N/A';
+            failAmountEl.textContent = '₹' + (data.amount || '0.00');
+            failStatusEl.textContent = data.status || 'Failed';
+            failReasonEl.textContent = data.reason || 'Unknown error';
+            failDateEl.textContent = formatEpoch(data.date);
 
             paymentFormContainer.style.display = 'none';
             paymentSuccess.style.display = 'none';
@@ -1030,14 +1121,12 @@
         }
         
         function showVoidSuccess(data) {
-            const params = new URLSearchParams(data);
-            
-            voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            voidAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
-            voidStatusEl.textContent = params.get('status') || 'Voided';
-            voidTidEl.textContent = params.get('tid') || 'N/A';
-            voidMidEl.textContent = params.get('mid') || 'N/A';
-            voidDateEl.textContent = formatEpoch(params.get('date'));
+            voidTxnIdEl.textContent = data.txnId || 'N/A';
+            voidAmountEl.textContent = '₹' + (data.amount || '0.00');
+            voidStatusEl.textContent = data.status || 'Voided';
+            voidTidEl.textContent = data.tid || 'N/A';
+            voidMidEl.textContent = data.mid || 'N/A';
+            voidDateEl.textContent = formatEpoch(data.date);
 
             voidFormContainer.style.display = 'none';
             voidFailure.style.display = 'none';
@@ -1045,13 +1134,11 @@
         }
 
         function showVoidFailure(data) {
-            const params = new URLSearchParams(data);
-
-            voidFailTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            voidFailAmountEl.textContent = '₹' + (params.get('amount') || '0.00');
-            voidFailStatusEl.textContent = params.get('status') || 'Failed';
-            voidFailReasonEl.textContent = params.get('reason') || 'Unknown error';
-            voidFailDateEl.textContent = formatEpoch(params.get('date'));
+            voidFailTxnIdEl.textContent = data.txnId || 'N/A';
+            voidFailAmountEl.textContent = '₹' + (data.amount || '0.00');
+            voidFailStatusEl.textContent = data.status || 'Failed';
+            voidFailReasonEl.textContent = data.reason || 'Unknown error';
+            voidFailDateEl.textContent = formatEpoch(data.date);
 
             voidFormContainer.style.display = 'none';
             voidSuccess.style.display = 'none';
@@ -1070,17 +1157,53 @@
             const urlParams = new URLSearchParams(window.location.search);
             
             if (urlParams.has('paymentSuccess')) {
-                showPaymentSection();
-                showPaymentSuccess(urlParams.get('paymentSuccess'));
+                try {
+                    const data = JSON.parse(decodeURIComponent(urlParams.get('paymentSuccess')));
+                    showPaymentSection();
+                    showPaymentSuccess(data);
+                } catch (e) {
+                    showPaymentSection();
+                    showPaymentFailure({
+                        status: 'Failed',
+                        reason: 'Invalid payment data'
+                    });
+                }
             } else if (urlParams.has('paymentFailure')) {
-                showPaymentSection();
-                showPaymentFailure(urlParams.get('paymentFailure'));
+                try {
+                    const data = JSON.parse(decodeURIComponent(urlParams.get('paymentFailure')));
+                    showPaymentSection();
+                    showPaymentFailure(data);
+                } catch (e) {
+                    showPaymentSection();
+                    showPaymentFailure({
+                        status: 'Failed',
+                        reason: 'Invalid error data'
+                    });
+                }
             } else if (urlParams.has('voidSuccess')) {
-                showVoidSection();
-                showVoidSuccess(urlParams.get('voidSuccess'));
+                try {
+                    const data = JSON.parse(decodeURIComponent(urlParams.get('voidSuccess')));
+                    showVoidSection();
+                    showVoidSuccess(data);
+                } catch (e) {
+                    showVoidSection();
+                    showVoidFailure({
+                        status: 'Failed',
+                        reason: 'Invalid void data'
+                    });
+                }
             } else if (urlParams.has('voidFailure')) {
-                showVoidSection();
-                showVoidFailure(urlParams.get('voidFailure'));
+                try {
+                    const data = JSON.parse(decodeURIComponent(urlParams.get('voidFailure')));
+                    showVoidSection();
+                    showVoidFailure(data);
+                } catch (e) {
+                    showVoidSection();
+                    showVoidFailure({
+                        status: 'Failed',
+                        reason: 'Invalid error data'
+                    });
+                }
             }
         }
         
