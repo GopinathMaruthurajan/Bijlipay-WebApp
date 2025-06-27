@@ -335,7 +335,7 @@
             background-color: #757575;
         }
         
-        .btn-continue {
+        .btn-new-payment {
             background-color: #4CAF50;
             color: white;
             margin-top: 30px;
@@ -416,7 +416,7 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-continue" id="paymentContinueBtn">Continue</button>
+                <button class="btn btn-new-payment" id="paymentNewPaymentBtn">New Payment</button>
             </div>
         </div>
         
@@ -461,7 +461,7 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-continue" id="voidContinueBtn">Continue</button>
+                <button class="btn btn-new-payment" id="voidNewPaymentBtn">New Payment</button>
             </div>
         </div>
     </div>
@@ -482,8 +482,8 @@
         const paymentMethods = document.querySelectorAll('.payment-method');
         const paymentSuccess = document.getElementById('paymentSuccess');
         const voidSuccess = document.getElementById('voidSuccess');
-        const paymentContinueBtn = document.getElementById('paymentContinueBtn');
-        const voidContinueBtn = document.getElementById('voidContinueBtn');
+        const paymentNewPaymentBtn = document.getElementById('paymentNewPaymentBtn');
+        const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
         
         // Invoice elements
         const txnIdEl = document.getElementById('txnId');
@@ -509,8 +509,8 @@
         backBtn.addEventListener('click', showMainMenu);
         backArrow.addEventListener('click', handleBackNavigation);
         billNumberInput.addEventListener('input', validatePaymentForm);
-        paymentContinueBtn.addEventListener('click', showMainMenu);
-        voidContinueBtn.addEventListener('click', showMainMenu);
+        paymentNewPaymentBtn.addEventListener('click', showMainMenu);
+        voidNewPaymentBtn.addEventListener('click', showMainMenu);
         
         paymentMethods.forEach(method => {
             method.addEventListener('click', () => {
@@ -530,6 +530,13 @@
             paymentSection.style.display = 'block';
             paymentSuccess.style.display = 'none';
             backArrow.style.display = 'block';
+            
+            // Reset form
+            document.querySelector('#paymentSection .form-group').style.display = 'block';
+            document.querySelector('.payment-methods').style.display = 'block';
+            payNowBtn.style.display = 'block';
+            document.getElementById('paymentInvoice').style.display = 'none';
+            
             billNumberInput.focus();
         }
 
@@ -542,6 +549,7 @@
             document.querySelector('#voidSection .form-group').style.display = 'block';
             voidNowBtn.style.display = 'block';
             backBtn.style.display = 'block';
+            document.getElementById('voidInvoice').style.display = 'none';
             transactionIdInput.focus();
         }
 
@@ -568,25 +576,16 @@
                 return;
             }
             
-            // Simulate payment processing
+            // Hide form elements
             document.querySelector('#paymentSection .form-group').style.display = 'none';
             document.querySelector('.payment-methods').style.display = 'none';
             payNowBtn.style.display = 'none';
             
-            // Show success after 2 seconds (simulating processing)
-            setTimeout(() => {
-                // Update invoice details with dummy data (in real app, this would come from backend)
-                const now = new Date();
-                txnIdEl.textContent = Math.floor(Math.random() * 1000000000);
-                billNumEl.textContent = billNumber;
-                amountEl.textContent = '$' + (Math.random() * 1000).toFixed(2);
-                statusEl.textContent = 'Approved';
-                dateEl.textContent = now.toISOString().replace('T', ' ').substring(0, 16);
-                
-                // Show success and invoice
-                paymentSuccess.style.display = 'block';
-                document.getElementById('paymentInvoice').style.display = 'block';
-            }, 2000);
+            // Create a unique URL with parameters for Android to intercept
+            const paymentUrl = `bijlipay://payment?billNumber=${encodeURIComponent(billNumber)}&method=${encodeURIComponent(selectedMethod)}`;
+            
+            // Redirect to the custom URL scheme
+            window.location.href = paymentUrl;
         }
 
         function handleVoid() {
@@ -602,24 +601,16 @@
                 return;
             }
             
-            // Simulate void processing
+            // Hide form elements
             document.querySelector('#voidSection .form-group').style.display = 'none';
             voidNowBtn.style.display = 'none';
             backBtn.style.display = 'none';
             
-            // Show success after 2 seconds (simulating processing)
-            setTimeout(() => {
-                // Update invoice details with dummy data (in real app, this would come from backend)
-                const now = new Date();
-                voidTxnIdEl.textContent = transactionId;
-                voidAmountEl.textContent = '$' + (Math.random() * 1000).toFixed(2);
-                voidStatusEl.textContent = 'Voided';
-                voidDateEl.textContent = now.toISOString().replace('T', ' ').substring(0, 16);
-                
-                // Show success and invoice
-                voidSuccess.style.display = 'block';
-                document.getElementById('voidInvoice').style.display = 'block';
-            }, 2000);
+            // Create a unique URL with parameters for Android to intercept
+            const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
+            
+            // Redirect to the custom URL scheme
+            window.location.href = voidUrl;
         }
 
         function handleBackNavigation() {
@@ -630,16 +621,70 @@
                     showMainMenu();
                 }
             } else {
-                if (typeof Android !== 'undefined' && Android.goBack) {
-                    Android.goBack();
-                } else {
-                    window.history.back();
-                }
+                // Use standard web navigation as fallback
+                window.history.back();
             }
         }
         
-        // Initialize form validation
+        // Function to show payment success (called from Android via URL parameter)
+        function showPaymentSuccess(data) {
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                txnIdEl.textContent = params.get('txnId') || 'N/A';
+                billNumEl.textContent = params.get('billNumber') || 'N/A';
+                amountEl.textContent = '$' + (params.get('amount') || '0.00');
+                statusEl.textContent = params.get('status') || 'Approved';
+                dateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                paymentSuccess.style.display = 'block';
+                document.getElementById('paymentInvoice').style.display = 'block';
+            } catch (e) {
+                console.error('Error processing payment success:', e);
+                // Fallback to default success display
+                paymentSuccess.style.display = 'block';
+            }
+        }
+        
+        // Function to show void success (called from Android via URL parameter)
+        function showVoidSuccess(data) {
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
+                voidAmountEl.textContent = '$' + (params.get('amount') || '0.00');
+                voidStatusEl.textContent = params.get('status') || 'Voided';
+                voidDateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                voidSuccess.style.display = 'block';
+                document.getElementById('voidInvoice').style.display = 'block';
+            } catch (e) {
+                console.error('Error processing void success:', e);
+                // Fallback to default success display
+                voidSuccess.style.display = 'block';
+            }
+        }
+        
+        // Check for success parameters in URL on page load
+        function checkForSuccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('paymentSuccess')) {
+                showPaymentSection();
+                showPaymentSuccess(urlParams.get('paymentSuccess'));
+            } else if (urlParams.has('voidSuccess')) {
+                showVoidSection();
+                showVoidSuccess(urlParams.get('voidSuccess'));
+            }
+        }
+        
+        // Initialize
         validatePaymentForm();
+        checkForSuccess();
     </script>
 </body>
 </html>
