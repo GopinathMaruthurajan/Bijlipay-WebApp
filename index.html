@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Portal</title>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Portal</title>
+    <style>
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -52,7 +52,7 @@
             padding: 25px;
         }
         
-        /* Success Animation Styles */
+        /* Success Animation Styles (Only for Void) */
         .success-container {
             display: none;
             text-align: center;
@@ -116,7 +116,7 @@
             margin: 20px 0;
         }
         
-        /* Rest of your existing styles remain the same */
+        /* Rest of your existing styles */
         .page-title {
             color: #333;
             margin: 0 0 25px 0;
@@ -304,205 +304,239 @@
     </style>
 </head>
 <body>
-  <div class="header">
-    <div class="back-arrow" id="backArrow">←</div>
-    <img src="logo.png" alt="BijliPay Logo" class="logo">
-  </div>
-  <div class="container">
-    <div id="mainMenu">
-      <h1>Select Transaction Type</h1>
-      <button class="btn-menu btn-payment" id="paymentBtn">Make Payment</button>
-      <button class="btn-menu btn-void" id="voidBtn">Void Transaction</button>
+    <div class="header">
+        <div class="back-arrow" id="backArrow">←</div>
+        <img src="logo.png" alt="BijliPay Logo" class="logo">
+    </div>
+    
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="mainMenu">
+            <h1>Select Transaction Type</h1>
+            <button class="btn-menu btn-payment" id="paymentBtn">Make Payment</button>
+            <button class="btn-menu btn-void" id="voidBtn">Void Transaction</button>
+        </div>
+        
+        <!-- Payment Gateway Section -->
+        <div id="paymentSection" class="payment-form" style="display: none;">
+            <h2 class="page-title">Payment Gateway</h2>
+            
+            <div class="form-group">
+                <label for="billNumber">Customer Bill Number</label>
+                <input type="number" id="billNumber" placeholder="Enter bill number">
+            </div>
+            
+            <div class="payment-methods">
+                <h3>Payment Mode</h3>
+                
+                <div class="payment-method selected" data-method="card">
+                    <div class="payment-method-icon">🏦</div>
+                    <div class="payment-method-name">Card</div>
+                </div>
+                
+                <div class="payment-method" data-method="qr">
+                    <div class="payment-method-icon">📱</div>
+                    <div class="payment-method-name">Scan QR</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
+        </div>
+        
+        <!-- Void Transaction Section -->
+        <div id="voidSection" class="void-section">
+            <h2>Void Transaction</h2>
+            <div class="form-group">
+                <label for="transactionId">Transaction ID</label>
+                <input type="number" id="transactionId" placeholder="Enter transaction ID">
+            </div>
+            <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
+            <button class="btn btn-back" id="backBtn">Back to Menu</button>
+            
+            <!-- Success Container (Only for Void) -->
+            <div id="voidSuccess" class="success-container">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <div class="success-message">Void Successful!</div>
+                <button class="btn btn-continue" id="continueBtn">Continue</button>
+            </div>
+        </div>
     </div>
 
-    <div id="paymentSection" class="payment-form" style="display: none;">
-      <h2 class="page-title">Payment Gateway</h2>
-      <div class="form-group">
-        <label for="billNumber">Customer Bill Number</label>
-        <input type="number" id="billNumber" placeholder="Enter bill number">
-      </div>
-      <div class="payment-methods">
-        <h3>Payment Mode</h3>
-        <div class="payment-method selected" data-method="card">
-          <div class="payment-method-icon">🏦</div>
-          <div class="payment-method-name">Card</div>
-        </div>
-        <div class="payment-method" data-method="qr">
-          <div class="payment-method-icon">📱</div>
-          <div class="payment-method-name">Scan QR</div>
-        </div>
-      </div>
-      <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
-    </div>
+    <script>
+        // DOM Elements
+        const paymentBtn = document.getElementById('paymentBtn');
+        const voidBtn = document.getElementById('voidBtn');
+        const voidNowBtn = document.getElementById('voidNowBtn');
+        const backBtn = document.getElementById('backBtn');
+        const backArrow = document.getElementById('backArrow');
+        const mainMenu = document.getElementById('mainMenu');
+        const paymentSection = document.getElementById('paymentSection');
+        const voidSection = document.getElementById('voidSection');
+        const transactionIdInput = document.getElementById('transactionId');
+        const billNumberInput = document.getElementById('billNumber');
+        const payNowBtn = document.getElementById('payNowBtn');
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        const voidSuccess = document.getElementById('voidSuccess');
+        const continueBtn = document.getElementById('continueBtn');
+        
+        // Selected payment method
+        let selectedMethod = 'card';
+        
+        // Track navigation history
+        let navigationStack = ['main'];
 
-    <div id="voidSection" class="void-section">
-      <h2>Void Transaction</h2>
-      <div class="form-group">
-        <label for="transactionId">Transaction ID</label>
-        <input type="number" id="transactionId" placeholder="Enter transaction ID">
-      </div>
-      <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
-      <button class="btn btn-back" id="backBtn">Back to Menu</button>
+        // Event Listeners
+        paymentBtn.addEventListener('click', showPaymentSection);
+        voidBtn.addEventListener('click', showVoidSection);
+        voidNowBtn.addEventListener('click', handleVoid);
+        backBtn.addEventListener('click', showMainMenu);
+        backArrow.addEventListener('click', handleBackNavigation);
+        billNumberInput.addEventListener('input', validatePaymentForm);
+        continueBtn.addEventListener('click', showMainMenu);
+        
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', () => {
+                paymentMethods.forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+                selectedMethod = method.dataset.method;
+            });
+        });
+        
+        payNowBtn.addEventListener('click', processPayment);
 
-      <div id="voidSuccess" class="success-container">
-        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-        </svg>
-        <div class="success-message">Success!</div>
-        <div id="invoiceDetails" style="text-align: left; padding: 15px 0; display: none;">
-          <p><strong>Invoice Number:</strong> <span id="invoiceNumber"></span></p>
-          <p><strong>Bill Number:</strong> <span id="billNumberDisplay"></span></p>
-          <p><strong>Amount:</strong> <span id="amount"></span></p>
-          <p><strong>Payment Method:</strong> <span id="paymentMethod"></span></p>
-          <p><strong>Transaction ID:</strong> <span id="txnId"></span></p>
-          <p><strong>TID:</strong> <span id="tid"></span></p>
-          <p><strong>MID:</strong> <span id="mid"></span></p>
-        </div>
-        <button class="btn btn-continue" id="continueBtn">Continue</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const paymentBtn = document.getElementById('paymentBtn');
-    const voidBtn = document.getElementById('voidBtn');
-    const voidNowBtn = document.getElementById('voidNowBtn');
-    const backBtn = document.getElementById('backBtn');
-    const backArrow = document.getElementById('backArrow');
-    const mainMenu = document.getElementById('mainMenu');
-    const paymentSection = document.getElementById('paymentSection');
-    const voidSection = document.getElementById('voidSection');
-    const transactionIdInput = document.getElementById('transactionId');
-    const billNumberInput = document.getElementById('billNumber');
-    const payNowBtn = document.getElementById('payNowBtn');
-    const paymentMethods = document.querySelectorAll('.payment-method');
-    const voidSuccess = document.getElementById('voidSuccess');
-    const continueBtn = document.getElementById('continueBtn');
-
-    let selectedMethod = 'card';
-    let navigationStack = ['main'];
-
-    paymentBtn.addEventListener('click', showPaymentSection);
-    voidBtn.addEventListener('click', showVoidSection);
-    voidNowBtn.addEventListener('click', handleVoid);
-    backBtn.addEventListener('click', showMainMenu);
-    backArrow.addEventListener('click', handleBackNavigation);
-    billNumberInput.addEventListener('input', validatePaymentForm);
-    continueBtn.addEventListener('click', showMainMenu);
-
-    paymentMethods.forEach(method => {
-      method.addEventListener('click', () => {
-        paymentMethods.forEach(m => m.classList.remove('selected'));
-        method.classList.add('selected');
-        selectedMethod = method.dataset.method;
-      });
-    });
-
-    payNowBtn.addEventListener('click', () => {
-      const billNumber = billNumberInput.value.trim();
-      if (!billNumber) return alert('Enter bill number');
-
-      if (typeof AndroidBridge !== 'undefined') {
-        AndroidBridge.startPayment(billNumber, selectedMethod);
-      } else {
-        alert('AndroidBridge not available');
-      }
-    });
-
-    function handleVoid() {
-      const txnId = transactionIdInput.value.trim();
-      if (!txnId) return alert('Enter transaction ID');
-
-      if (typeof AndroidBridge !== 'undefined') {
-        AndroidBridge.startVoid(txnId);
-      } else {
-        alert('AndroidBridge not available');
-      }
-    }
-
-    function showPaymentSection() {
-      navigationStack.push('payment');
-      mainMenu.style.display = 'none';
-      voidSection.style.display = 'none';
-      paymentSection.style.display = 'block';
-      backArrow.style.display = 'block';
-      billNumberInput.focus();
-    }
-
-    function showVoidSection() {
-      navigationStack.push('void');
-      mainMenu.style.display = 'none';
-      paymentSection.style.display = 'none';
-      voidSection.style.display = 'block';
-      backArrow.style.display = 'block';
-      voidSuccess.style.display = 'none';
-      document.querySelector('#voidSection .form-group').style.display = 'block';
-      voidNowBtn.style.display = 'block';
-      backBtn.style.display = 'block';
-      transactionIdInput.focus();
-    }
-
-    function showMainMenu() {
-      navigationStack = ['main'];
-      paymentSection.style.display = 'none';
-      voidSection.style.display = 'none';
-      mainMenu.style.display = 'block';
-      backArrow.style.display = 'none';
-      billNumberInput.value = '';
-      transactionIdInput.value = '';
-    }
-
-    function validatePaymentForm() {
-      const billNumber = billNumberInput.value.trim();
-      payNowBtn.disabled = billNumber.length === 0;
-    }
-
-    function handleBackNavigation() {
-      if (navigationStack.length > 1) {
-        navigationStack.pop();
-        showMainMenu();
-      } else {
-        if (typeof Android !== 'undefined' && Android.goBack) {
-          Android.goBack();
-        } else {
-          window.history.back();
+        // Functions
+        function showPaymentSection() {
+            navigationStack.push('payment');
+            mainMenu.style.display = 'none';
+            voidSection.style.display = 'none';
+            paymentSection.style.display = 'block';
+            backArrow.style.display = 'block';
+            billNumberInput.focus();
         }
-      }
-    }
 
-    function showInvoice(data) {
-      const obj = typeof data === 'string' ? JSON.parse(data) : data;
-      const txnType = (obj.txnType || '').toUpperCase();
+        function showVoidSection() {
+            navigationStack.push('void');
+            mainMenu.style.display = 'none';
+            paymentSection.style.display = 'none';
+            voidSection.style.display = 'block';
+            backArrow.style.display = 'block';
+            voidSuccess.style.display = 'none';
+            document.querySelector('#voidSection .form-group').style.display = 'block';
+            voidNowBtn.style.display = 'block';
+            backBtn.style.display = 'block';
+            transactionIdInput.focus();
+        }
 
-      document.querySelector('.success-message').innerText = txnType === 'VOID' ? 'Void Successful!' : 'Payment Successful!';
-      voidSuccess.style.display = 'block';
-      document.getElementById('invoiceDetails').style.display = txnType === 'SALE' ? 'block' : 'none';
+        function showMainMenu() {
+            navigationStack = ['main'];
+            paymentSection.style.display = 'none';
+            voidSection.style.display = 'none';
+            mainMenu.style.display = 'block';
+            backArrow.style.display = 'none';
+            billNumberInput.value = '';
+            transactionIdInput.value = '';
+        }
 
-      if (txnType === 'SALE') {
-        document.getElementById('invoiceNumber').textContent = obj.invoiceNumber || '-';
-        document.getElementById('billNumberDisplay').textContent = obj.billNumber || '-';
-        document.getElementById('amount').textContent = obj.amount || '-';
-        document.getElementById('paymentMethod').textContent = obj.paymentMethod || '-';
-        document.getElementById('txnId').textContent = obj.txnId || '-';
-        document.getElementById('tid').textContent = obj.tid || '-';
-        document.getElementById('mid').textContent = obj.mid || '-';
-      }
+        function validatePaymentForm() {
+            const billNumber = billNumberInput.value.trim();
+            payNowBtn.disabled = billNumber.length === 0;
+        }
 
-      voidSection.style.display = 'block';
-      mainMenu.style.display = 'none';
-      paymentSection.style.display = 'none';
-      backArrow.style.display = 'none';
+        function processPayment() {
+            const billNumber = billNumberInput.value.trim();
+            
+            if (!billNumber) {
+                alert('Please enter a valid bill number');
+                return;
+            }
+            
+            // Initiate payment
+            window.location.href = `payment://?billNumber=${billNumber}&paymentMethod=${selectedMethod}`;
+        }
 
-      setTimeout(() => voidSuccess.scrollIntoView({ behavior: 'smooth' }), 100);
-    }
+        function handleVoid() {
+            const transactionId = transactionIdInput.value.trim();
+            
+            if (!transactionId) {
+                alert('Please enter a valid transaction ID');
+                return;
+            }
+            
+            if (!/^\d+$/.test(transactionId)) {
+                alert('Transaction ID must contain only numbers');
+                return;
+            }
+            
+            // Initiate void transaction
+            window.location.href = `void://?transactionId=${transactionId}`;
+        }
 
-    function showPaymentFailed(data) {
-      alert('Transaction Failed!\n' + (data.message || 'Unknown error'));
-      showMainMenu();
-    }
+        function handleBackNavigation() {
+            if (navigationStack.length > 1) {
+                const currentPage = navigationStack.pop();
+                
+                if (currentPage === 'void' || currentPage === 'payment') {
+                    showMainMenu();
+                }
+            } else {
+                if (typeof Android !== 'undefined' && Android.goBack) {
+                    Android.goBack();
+                } else {
+                    window.history.back();
+                }
+            }
+        }
 
-    validatePaymentForm();
-  </script>
+        // Functions called from Android
+        function showInvoice(data) {
+            try {
+                const transactionData = typeof data === 'string' ? JSON.parse(data) : data;
+                
+                if (transactionData.txnType === 'VOID') {
+                    // Show void success
+                    document.querySelector('#voidSection .form-group').style.display = 'none';
+                    voidNowBtn.style.display = 'none';
+                    backBtn.style.display = 'none';
+                    voidSuccess.style.display = 'block';
+                    
+                    // Auto-return to menu after 3 seconds
+                    setTimeout(showMainMenu, 3000);
+                } else {
+                    // For payments, just silently return to menu
+                    navigationStack = ['main'];
+                    showMainMenu();
+                }
+            } catch (e) {
+                console.error('Error processing transaction data:', e);
+                navigationStack = ['main'];
+                showMainMenu();
+            }
+        }
+
+        function showPaymentFailed(data) {
+            alert('Transaction Failed!\n\n' + (data.message || 'Unknown error occurred'));
+            navigationStack = ['main'];
+            showMainMenu();
+        }
+
+        function formatDataForDisplay(data) {
+            try {
+                const obj = typeof data === 'string' ? JSON.parse(data) : data;
+                return `Transaction ID: ${obj.txnId || 'N/A'}\n` +
+                       `Amount: $${obj.amount || '0.00'}\n` +
+                       `Status: ${obj.status || 'Approved'}\n` +
+                       `TID: ${obj.tid || 'N/A'}\n` +
+                       `MID: ${obj.mid || 'N/A'}`;
+            } catch (e) {
+                return JSON.stringify(data);
+            }
+        }
+        
+        // Initialize form validation
+        validatePaymentForm();
+    </script>
 </body>
 </html>
