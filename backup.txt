@@ -52,7 +52,7 @@
             padding: 25px;
         }
         
-        /* Success Animation Styles */
+        /* Success Animation Styles (Only for Void) */
         .success-container {
             display: none;
             text-align: center;
@@ -114,45 +114,6 @@
             font-size: 20px;
             font-weight: 600;
             margin: 20px 0;
-        }
-        
-        /* Invoice Styles */
-        .invoice-container {
-            display: none;
-            margin-top: 20px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #f9f9f9;
-        }
-        
-        .invoice-title {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 18px;
-        }
-        
-        .invoice-details {
-            margin-bottom: 15px;
-        }
-        
-        .invoice-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .invoice-label {
-            color: #666;
-            font-weight: 500;
-        }
-        
-        .invoice-value {
-            color: #333;
-            font-weight: 600;
         }
         
         /* Rest of your existing styles */
@@ -380,44 +341,6 @@
             </div>
             
             <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
-            
-            <!-- Payment Success Container -->
-            <div id="paymentSuccess" class="success-container">
-                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                </svg>
-                <div class="success-message">Payment Successful!</div>
-                
-                <!-- Invoice Details -->
-                <div id="paymentInvoice" class="invoice-container">
-                    <div class="invoice-title">Transaction Details</div>
-                    <div class="invoice-details">
-                        <div class="invoice-row">
-                            <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="txnId">123456789</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Bill Number:</span>
-                            <span class="invoice-value" id="billNum">987654321</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Amount:</span>
-                            <span class="invoice-value" id="amount">$100.00</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="status">Approved</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="date">2023-06-15 14:30</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="btn btn-continue" id="paymentContinueBtn">Continue</button>
-            </div>
         </div>
         
         <!-- Void Transaction Section -->
@@ -430,38 +353,14 @@
             <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
             <button class="btn btn-back" id="backBtn">Back to Menu</button>
             
-            <!-- Void Success Container -->
+            <!-- Success Container (Only for Void) -->
             <div id="voidSuccess" class="success-container">
                 <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                     <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
                     <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                 </svg>
                 <div class="success-message">Void Successful!</div>
-                
-                <!-- Invoice Details -->
-                <div id="voidInvoice" class="invoice-container">
-                    <div class="invoice-title">Void Transaction Details</div>
-                    <div class="invoice-details">
-                        <div class="invoice-row">
-                            <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="voidTxnId">123456789</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Original Amount:</span>
-                            <span class="invoice-value" id="voidAmount">$100.00</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="voidStatus">Voided</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="voidDate">2023-06-15 14:35</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="btn btn-continue" id="voidContinueBtn">Continue</button>
+                <button class="btn btn-continue" id="continueBtn">Continue</button>
             </div>
         </div>
     </div>
@@ -480,21 +379,8 @@
         const billNumberInput = document.getElementById('billNumber');
         const payNowBtn = document.getElementById('payNowBtn');
         const paymentMethods = document.querySelectorAll('.payment-method');
-        const paymentSuccess = document.getElementById('paymentSuccess');
         const voidSuccess = document.getElementById('voidSuccess');
-        const paymentContinueBtn = document.getElementById('paymentContinueBtn');
-        const voidContinueBtn = document.getElementById('voidContinueBtn');
-        
-        // Invoice elements
-        const txnIdEl = document.getElementById('txnId');
-        const billNumEl = document.getElementById('billNum');
-        const amountEl = document.getElementById('amount');
-        const statusEl = document.getElementById('status');
-        const dateEl = document.getElementById('date');
-        const voidTxnIdEl = document.getElementById('voidTxnId');
-        const voidAmountEl = document.getElementById('voidAmount');
-        const voidStatusEl = document.getElementById('voidStatus');
-        const voidDateEl = document.getElementById('voidDate');
+        const continueBtn = document.getElementById('continueBtn');
         
         // Selected payment method
         let selectedMethod = 'card';
@@ -509,8 +395,7 @@
         backBtn.addEventListener('click', showMainMenu);
         backArrow.addEventListener('click', handleBackNavigation);
         billNumberInput.addEventListener('input', validatePaymentForm);
-        paymentContinueBtn.addEventListener('click', showMainMenu);
-        voidContinueBtn.addEventListener('click', showMainMenu);
+        continueBtn.addEventListener('click', showMainMenu);
         
         paymentMethods.forEach(method => {
             method.addEventListener('click', () => {
@@ -528,7 +413,6 @@
             mainMenu.style.display = 'none';
             voidSection.style.display = 'none';
             paymentSection.style.display = 'block';
-            paymentSuccess.style.display = 'none';
             backArrow.style.display = 'block';
             billNumberInput.focus();
         }
@@ -538,6 +422,7 @@
             mainMenu.style.display = 'none';
             paymentSection.style.display = 'none';
             voidSection.style.display = 'block';
+            backArrow.style.display = 'block';
             voidSuccess.style.display = 'none';
             document.querySelector('#voidSection .form-group').style.display = 'block';
             voidNowBtn.style.display = 'block';
@@ -568,25 +453,8 @@
                 return;
             }
             
-            // Simulate payment processing
-            document.querySelector('#paymentSection .form-group').style.display = 'none';
-            document.querySelector('.payment-methods').style.display = 'none';
-            payNowBtn.style.display = 'none';
-            
-            // Show success after 2 seconds (simulating processing)
-            setTimeout(() => {
-                // Update invoice details with dummy data (in real app, this would come from backend)
-                const now = new Date();
-                txnIdEl.textContent = Math.floor(Math.random() * 1000000000);
-                billNumEl.textContent = billNumber;
-                amountEl.textContent = '$' + (Math.random() * 1000).toFixed(2);
-                statusEl.textContent = 'Approved';
-                dateEl.textContent = now.toISOString().replace('T', ' ').substring(0, 16);
-                
-                // Show success and invoice
-                paymentSuccess.style.display = 'block';
-                document.getElementById('paymentInvoice').style.display = 'block';
-            }, 2000);
+            // Initiate payment
+            window.location.href = `payment://?billNumber=${billNumber}&paymentMethod=${selectedMethod}`;
         }
 
         function handleVoid() {
@@ -602,24 +470,8 @@
                 return;
             }
             
-            // Simulate void processing
-            document.querySelector('#voidSection .form-group').style.display = 'none';
-            voidNowBtn.style.display = 'none';
-            backBtn.style.display = 'none';
-            
-            // Show success after 2 seconds (simulating processing)
-            setTimeout(() => {
-                // Update invoice details with dummy data (in real app, this would come from backend)
-                const now = new Date();
-                voidTxnIdEl.textContent = transactionId;
-                voidAmountEl.textContent = '$' + (Math.random() * 1000).toFixed(2);
-                voidStatusEl.textContent = 'Voided';
-                voidDateEl.textContent = now.toISOString().replace('T', ' ').substring(0, 16);
-                
-                // Show success and invoice
-                voidSuccess.style.display = 'block';
-                document.getElementById('voidInvoice').style.display = 'block';
-            }, 2000);
+            // Initiate void transaction
+            window.location.href = `void://?transactionId=${transactionId}`;
         }
 
         function handleBackNavigation() {
@@ -635,6 +487,51 @@
                 } else {
                     window.history.back();
                 }
+            }
+        }
+
+        // Functions called from Android
+        function showInvoice(data) {
+            try {
+                const transactionData = typeof data === 'string' ? JSON.parse(data) : data;
+                
+                if (transactionData.txnType === 'VOID') {
+                    // Show void success
+                    document.querySelector('#voidSection .form-group').style.display = 'none';
+                    voidNowBtn.style.display = 'none';
+                    backBtn.style.display = 'none';
+                    voidSuccess.style.display = 'block';
+                    
+                    // Auto-return to menu after 3 seconds
+                    setTimeout(showMainMenu, 3000);
+                } else {
+                    // For payments, just silently return to menu
+                    navigationStack = ['main'];
+                    showMainMenu();
+                }
+            } catch (e) {
+                console.error('Error processing transaction data:', e);
+                navigationStack = ['main'];
+                showMainMenu();
+            }
+        }
+
+        function showPaymentFailed(data) {
+            alert('Transaction Failed!\n\n' + (data.message || 'Unknown error occurred'));
+            navigationStack = ['main'];
+            showMainMenu();
+        }
+
+        function formatDataForDisplay(data) {
+            try {
+                const obj = typeof data === 'string' ? JSON.parse(data) : data;
+                return `Transaction ID: ${obj.txnId || 'N/A'}\n` +
+                       `Amount: $${obj.amount || '0.00'}\n` +
+                       `Status: ${obj.status || 'Approved'}\n` +
+                       `TID: ${obj.tid || 'N/A'}\n` +
+                       `MID: ${obj.mid || 'N/A'}`;
+            } catch (e) {
+                return JSON.stringify(data);
             }
         }
         
