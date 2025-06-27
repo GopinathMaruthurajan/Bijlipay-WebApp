@@ -993,15 +993,8 @@
                 // Register callback handler
                 window.handlePaymentResult = handlePaymentResponse;
                 
-                // Try different Android interfaces
-                if (typeof Android !== 'undefined') {
-                    Android.initiatePayment(JSON.stringify(paymentData));
-                } else if (typeof window.AndroidBridge !== 'undefined') {
-                    window.AndroidBridge.initiatePayment(JSON.stringify(paymentData));
-                } else {
-                    // Fallback to deep link
-                    window.location.href = `bijlipay://payment?${objectToQueryString(paymentData)}`;
-                }
+                
+                window.location.href = `bijlipay://payment?${objectToQueryString(paymentData)}`;
                 
                 // Set timeout handler
                 paymentTimeoutId = setTimeout(() => {
