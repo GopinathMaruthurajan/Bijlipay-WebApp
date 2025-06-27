@@ -25,7 +25,6 @@
             background-color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: relative;
-            height: 70px;
         }
         
         .back-arrow {
@@ -35,7 +34,6 @@
             cursor: pointer;
             color: #333;
             display: none;
-            padding: 5px;
         }
         
         .logo {
@@ -149,14 +147,11 @@
         .invoice-label {
             color: #666;
             font-weight: 500;
-            min-width: 120px;
         }
         
         .invoice-value {
             color: #333;
             font-weight: 600;
-            word-break: break-all;
-            text-align: right;
         }
         
         /* Form Styles */
@@ -346,38 +341,10 @@
             margin-top: 30px;
         }
         
-        /* Loading Spinner */
-        .spinner {
-            display: none;
-            width: 40px;
-            height: 40px;
-            margin: 20px auto;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4CAF50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Responsive Adjustments */
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px auto;
-                padding: 15px;
-                border-radius: 0;
-            }
-            
-            .header {
-                padding: 10px;
-            }
-            
-            .back-arrow {
-                left: 10px;
-            }
+        /* Form Container */
+        #voidFormContainer {
+            display: block;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -397,41 +364,28 @@
         
         <!-- Payment Gateway Section -->
         <div id="paymentSection" class="payment-form" style="display: none;">
-            <div id="paymentFormContainer">
-                <h2 class="page-title">Payment Gateway</h2>
-                
-                <div class="form-group" id="billNumberGroup">
-                    <label for="billNumber">Customer Bill Number</label>
-                    <input type="text" id="billNumber" placeholder="Enter bill number" inputmode="numeric">
-                </div>
-                
-                <div class="form-group" id="amountGroup">
-                    <label for="amount">Amount (₹)</label>
-                    <input type="text" id="amount" placeholder="Enter amount" inputmode="decimal">
-                </div>
-                
-                <div class="payment-methods">
-                    <h3>Payment Mode</h3>
-                    
-                    <div class="payment-method selected" data-method="card">
-                        <div class="payment-method-icon">🏦</div>
-                        <div class="payment-method-name">Card</div>
-                    </div>
-                    
-                    <div class="payment-method" data-method="qr">
-                        <div class="payment-method-icon">📱</div>
-                        <div class="payment-method-name">Scan QR</div>
-                    </div>
-                    
-                    <div class="payment-method" data-method="upi">
-                        <div class="payment-method-icon">💳</div>
-                        <div class="payment-method-name">UPI</div>
-                    </div>
-                </div>
-                
-                <div class="spinner" id="paymentSpinner"></div>
-                <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
+            <h2 class="page-title">Payment Gateway</h2>
+            
+            <div class="form-group">
+                <label for="billNumber">Customer Bill Number</label>
+                <input type="number" id="billNumber" placeholder="Enter bill number">
             </div>
+            
+            <div class="payment-methods">
+                <h3>Payment Mode</h3>
+                
+                <div class="payment-method selected" data-method="card">
+                    <div class="payment-method-icon">🏦</div>
+                    <div class="payment-method-name">Card</div>
+                </div>
+                
+                <div class="payment-method" data-method="qr">
+                    <div class="payment-method-icon">📱</div>
+                    <div class="payment-method-name">Scan QR</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
             
             <!-- Payment Success Container -->
             <div id="paymentSuccess" class="success-container">
@@ -441,65 +395,51 @@
                 </svg>
                 <div class="success-message">Payment Successful!</div>
                 
-                <div class="invoice-container">
+                <!-- Invoice Details -->
+                <div id="paymentInvoice" class="invoice-container">
                     <div class="invoice-title">Transaction Details</div>
                     <div class="invoice-details">
                         <div class="invoice-row">
                             <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="txnId">N/A</span>
+                            <span class="invoice-value" id="txnId">123456789</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Bill Number:</span>
-                            <span class="invoice-value" id="billNum">N/A</span>
+                            <span class="invoice-value" id="billNum">987654321</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Amount:</span>
-                            <span class="invoice-value" id="amountPaid">₹0.00</span>
+                            <span class="invoice-value" id="amount">$100.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="status">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Payment Method:</span>
-                            <span class="invoice-value" id="paymentMethod">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">TID:</span>
-                            <span class="invoice-value" id="tid">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">MID:</span>
-                            <span class="invoice-value" id="mid">N/A</span>
+                            <span class="invoice-value" id="status">Approved</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="date">N/A</span>
+                            <span class="invoice-value" id="date">2023-06-15 14:30</span>
                         </div>
                     </div>
                 </div>
                 
                 <button class="btn btn-new-payment" id="paymentNewPaymentBtn">New Payment</button>
-                <button class="btn btn-back" id="printReceiptBtn">Print Receipt</button>
             </div>
         </div>
         
         <!-- Void Transaction Section -->
         <div id="voidSection" class="void-section">
+            <!-- Form Container -->
             <div id="voidFormContainer">
                 <h2>Void Transaction</h2>
-                
-                <div class="form-group" id="transactionIdGroup">
+                <div class="form-group">
                     <label for="transactionId">Transaction ID</label>
-                    <input type="text" id="transactionId" placeholder="Enter transaction ID">
+                    <input type="number" id="transactionId" placeholder="Enter transaction ID">
                 </div>
-                
-                <div class="spinner" id="voidSpinner"></div>
                 <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
                 <button class="btn btn-back" id="backBtn">Back to Menu</button>
             </div>
             
-            <!-- Void Success Container -->
+            <!-- Success Container -->
             <div id="voidSuccess" class="success-container">
                 <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                     <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
@@ -507,114 +447,80 @@
                 </svg>
                 <div class="success-message">Void Successful!</div>
                 
-                <div class="invoice-container">
-                    <div class="invoice-title">Transaction Details</div>
+                <!-- Invoice Details -->
+                <div id="voidInvoice" class="invoice-container">
+                    <div class="invoice-title">Void Transaction Details</div>
                     <div class="invoice-details">
                         <div class="invoice-row">
-                            <span class="invoice-label">Original Txn ID:</span>
+                            <span class="invoice-label">Transaction ID:</span>
                             <span class="invoice-value" id="voidTxnId">N/A</span>
                         </div>
                         <div class="invoice-row">
-                            <span class="invoice-label">Void Txn ID:</span>
-                            <span class="invoice-value" id="voidRefId">N/A</span>
-                        </div>
-                        <div class="invoice-row">
                             <span class="invoice-label">Original Amount:</span>
-                            <span class="invoice-value" id="voidAmount">₹0.00</span>
+                            <span class="invoice-value" id="voidAmount">$0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="voidStatus">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">TID:</span>
-                            <span class="invoice-value" id="voidTid">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">MID:</span>
-                            <span class="invoice-value" id="voidMid">N/A</span>
+                            <span class="invoice-value" id="voidStatus">Voided</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="voidDate">N/A</span>
+                            <span class="invoice-value" id="voidDate">2025-06-27 07:17</span>
                         </div>
                     </div>
                 </div>
                 
                 <button class="btn btn-new-payment" id="voidNewPaymentBtn">New Payment</button>
-                <button class="btn btn-back" id="printVoidReceiptBtn">Print Receipt</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Constants
-        const PAYMENT_TIMEOUT = 30000; // 30 seconds timeout
-        
         // DOM Elements
-        const mainMenu = document.getElementById('mainMenu');
         const paymentBtn = document.getElementById('paymentBtn');
         const voidBtn = document.getElementById('voidBtn');
-        const backArrow = document.getElementById('backArrow');
-        const paymentSection = document.getElementById('paymentSection');
-        const voidSection = document.getElementById('voidSection');
-        const paymentFormContainer = document.getElementById('paymentFormContainer');
-        const paymentSuccess = document.getElementById('paymentSuccess');
-        const voidFormContainer = document.getElementById('voidFormContainer');
-        const voidSuccess = document.getElementById('voidSuccess');
-        const billNumberInput = document.getElementById('billNumber');
-        const amountInput = document.getElementById('amount');
-        const transactionIdInput = document.getElementById('transactionId');
-        const payNowBtn = document.getElementById('payNowBtn');
         const voidNowBtn = document.getElementById('voidNowBtn');
         const backBtn = document.getElementById('backBtn');
+        const backArrow = document.getElementById('backArrow');
+        const mainMenu = document.getElementById('mainMenu');
+        const paymentSection = document.getElementById('paymentSection');
+        const voidSection = document.getElementById('voidSection');
+        const transactionIdInput = document.getElementById('transactionId');
+        const billNumberInput = document.getElementById('billNumber');
+        const payNowBtn = document.getElementById('payNowBtn');
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        const paymentSuccess = document.getElementById('paymentSuccess');
+        const voidSuccess = document.getElementById('voidSuccess');
         const paymentNewPaymentBtn = document.getElementById('paymentNewPaymentBtn');
         const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
-        const printReceiptBtn = document.getElementById('printReceiptBtn');
-        const printVoidReceiptBtn = document.getElementById('printVoidReceiptBtn');
-        const paymentSpinner = document.getElementById('paymentSpinner');
-        const voidSpinner = document.getElementById('voidSpinner');
-        const paymentMethods = document.querySelectorAll('.payment-method');
+        const voidFormContainer = document.getElementById('voidFormContainer');
         
         // Invoice elements
         const txnIdEl = document.getElementById('txnId');
         const billNumEl = document.getElementById('billNum');
-        const amountPaidEl = document.getElementById('amountPaid');
+        const amountEl = document.getElementById('amount');
         const statusEl = document.getElementById('status');
-        const paymentMethodEl = document.getElementById('paymentMethod');
-        const tidEl = document.getElementById('tid');
-        const midEl = document.getElementById('mid');
         const dateEl = document.getElementById('date');
         const voidTxnIdEl = document.getElementById('voidTxnId');
-        const voidRefIdEl = document.getElementById('voidRefId');
         const voidAmountEl = document.getElementById('voidAmount');
         const voidStatusEl = document.getElementById('voidStatus');
-        const voidTidEl = document.getElementById('voidTid');
-        const voidMidEl = document.getElementById('voidMid');
         const voidDateEl = document.getElementById('voidDate');
         
-        // State
+        // Selected payment method
         let selectedMethod = 'card';
+        
+        // Track navigation history
         let navigationStack = ['main'];
-        let paymentTimeoutId = null;
-        let voidTimeoutId = null;
 
         // Event Listeners
         paymentBtn.addEventListener('click', showPaymentSection);
         voidBtn.addEventListener('click', showVoidSection);
+        voidNowBtn.addEventListener('click', handleVoid);
         backBtn.addEventListener('click', showMainMenu);
         backArrow.addEventListener('click', handleBackNavigation);
+        billNumberInput.addEventListener('input', validatePaymentForm);
         paymentNewPaymentBtn.addEventListener('click', showMainMenu);
         voidNewPaymentBtn.addEventListener('click', showMainMenu);
-        printReceiptBtn.addEventListener('click', printReceipt);
-        printVoidReceiptBtn.addEventListener('click', printVoidReceipt);
-        
-        billNumberInput.addEventListener('input', validatePaymentForm);
-        amountInput.addEventListener('input', validatePaymentForm);
-        transactionIdInput.addEventListener('input', validateVoidForm);
-        
-        payNowBtn.addEventListener('click', processPayment);
-        voidNowBtn.addEventListener('click', handleVoid);
         
         paymentMethods.forEach(method => {
             method.addEventListener('click', () => {
@@ -623,6 +529,8 @@
                 selectedMethod = method.dataset.method;
             });
         });
+        
+        payNowBtn.addEventListener('click', processPayment);
 
         // Functions
         function showPaymentSection() {
@@ -630,14 +538,14 @@
             mainMenu.style.display = 'none';
             voidSection.style.display = 'none';
             paymentSection.style.display = 'block';
+            paymentSuccess.style.display = 'none';
             backArrow.style.display = 'block';
             
             // Reset form
-            paymentFormContainer.style.display = 'block';
-            paymentSuccess.style.display = 'none';
-            billNumberInput.value = '';
-            amountInput.value = '';
-            validatePaymentForm();
+            document.querySelector('#paymentSection .form-group').style.display = 'block';
+            document.querySelector('.payment-methods').style.display = 'block';
+            payNowBtn.style.display = 'block';
+            document.getElementById('paymentInvoice').style.display = 'none';
             
             billNumberInput.focus();
         }
@@ -647,14 +555,8 @@
             mainMenu.style.display = 'none';
             paymentSection.style.display = 'none';
             voidSection.style.display = 'block';
-            backArrow.style.display = 'block';
-            
-            // Reset form
-            voidFormContainer.style.display = 'block';
             voidSuccess.style.display = 'none';
-            transactionIdInput.value = '';
-            validateVoidForm();
-            
+            voidFormContainer.style.display = 'block';
             transactionIdInput.focus();
         }
 
@@ -664,357 +566,143 @@
             voidSection.style.display = 'none';
             mainMenu.style.display = 'block';
             backArrow.style.display = 'none';
+            billNumberInput.value = '';
+            transactionIdInput.value = '';
+            
+            // Reset form visibility
+            if (voidFormContainer) {
+                voidFormContainer.style.display = 'block';
+            }
+            if (voidSuccess) {
+                voidSuccess.style.display = 'none';
+            }
         }
 
         function validatePaymentForm() {
             const billNumber = billNumberInput.value.trim();
-            const amount = amountInput.value.trim();
-            
-            const billNumberValid = billNumber.length > 0;
-            const amountValid = /^\d+(\.\d{1,2})?$/.test(amount) && parseFloat(amount) > 0;
-            
-            payNowBtn.disabled = !(billNumberValid && amountValid);
-        }
-
-        function validateVoidForm() {
-            const transactionId = transactionIdInput.value.trim();
-            voidNowBtn.disabled = transactionId.length === 0;
+            payNowBtn.disabled = billNumber.length === 0;
         }
 
         function processPayment() {
             const billNumber = billNumberInput.value.trim();
-            const amount = amountInput.value.trim();
             
-            if (!billNumber || !amount) {
-                alert('Please fill all fields');
+            if (!billNumber) {
+                alert('Please enter a valid bill number');
                 return;
             }
             
-            // Show loading spinner
-            paymentSpinner.style.display = 'block';
-            payNowBtn.disabled = true;
+            // Hide all form elements
+            document.querySelector('#paymentSection .form-group').style.display = 'none';
+            document.querySelector('.payment-methods').style.display = 'none';
+            payNowBtn.style.display = 'none';
             
-            // Prepare payment data
-            const paymentData = {
-                billNumber: billNumber,
-                amount: amount,
-                method: selectedMethod,
-                timestamp: Date.now()
-            };
-
-            if (isAndroidApp()) {
-                handleAndroidPayment(paymentData);
-            } else {
-                handleWebPayment(paymentData);
-            }
-        }
-
-        function handleAndroidPayment(paymentData) {
-            try {
-                // Register callback handler
-                window.handlePaymentResult = function(response) {
-                    clearTimeout(paymentTimeoutId);
-                    paymentSpinner.style.display = 'none';
-                    
-                    try {
-                        const result = typeof response === 'string' ? JSON.parse(response) : response;
-                        
-                        if (result.status === 'success') {
-                            showPaymentSuccess(result.data);
-                        } else {
-                            alert('Payment failed: ' + (result.reason || 'Unknown error'));
-                            payNowBtn.disabled = false;
-                        }
-                    } catch (e) {
-                        console.error('Error processing payment response:', e);
-                        alert('Error processing payment response');
-                        payNowBtn.disabled = false;
-                    }
-                };
-                
-                // Try different Android interfaces
-                if (typeof Android !== 'undefined') {
-                    Android.initiatePayment(JSON.stringify(paymentData));
-                } else if (typeof window.AndroidBridge !== 'undefined') {
-                    window.AndroidBridge.initiatePayment(JSON.stringify(paymentData));
-                } else {
-                    // Fallback to deep link
-                    window.location.href = `bijlipay://payment?${objectToQueryString(paymentData)}`;
-                }
-                
-                // Set timeout
-                paymentTimeoutId = setTimeout(() => {
-                    if (paymentSpinner.style.display !== 'none') {
-                        paymentSpinner.style.display = 'none';
-                        payNowBtn.disabled = false;
-                        alert('Payment timeout: No response from payment gateway');
-                    }
-                }, PAYMENT_TIMEOUT);
-            } catch (e) {
-                paymentSpinner.style.display = 'none';
-                payNowBtn.disabled = false;
-                console.error('Payment error:', e);
-                alert('Error initiating payment');
-            }
-        }
-
-        function handleWebPayment(paymentData) {
-            // Simulate payment processing
-            setTimeout(() => {
-                paymentSpinner.style.display = 'none';
-                payNowBtn.disabled = false;
-                
-                const isSuccess = Math.random() > 0.3; // 70% success rate
-                
-                if (isSuccess) {
-                    showPaymentSuccess({
-                        txnId: 'TXN' + Math.floor(Math.random() * 1000000),
-                        billNumber: paymentData.billNumber,
-                        amount: paymentData.amount,
-                        status: 'Approved',
-                        method: paymentData.method,
-                        tid: 'TID' + Math.floor(Math.random() * 10000),
-                        mid: 'MID' + Math.floor(Math.random() * 10000),
-                        date: Date.now()
-                    });
-                } else {
-                    const reasons = [
-                        'Insufficient funds',
-                        'Invalid card details',
-                        'Network error',
-                        'Transaction declined'
-                    ];
-                    alert('Payment failed: ' + reasons[Math.floor(Math.random() * reasons.length)]);
-                }
-            }, 2000);
+            // Create payment URL for Android to intercept
+            const paymentUrl = `bijlipay://payment?billNumber=${encodeURIComponent(billNumber)}&method=${encodeURIComponent(selectedMethod)}`;
+            window.location.href = paymentUrl;
         }
 
         function handleVoid() {
             const transactionId = transactionIdInput.value.trim();
             
             if (!transactionId) {
-                alert('Please enter a transaction ID');
+                alert('Please enter a valid transaction ID');
                 return;
             }
             
-            // Show loading spinner
-            voidSpinner.style.display = 'block';
-            voidNowBtn.disabled = true;
-            
-            const voidData = {
-                transactionId: transactionId,
-                timestamp: Date.now()
-            };
-
-            if (isAndroidApp()) {
-                handleAndroidVoid(voidData);
-            } else {
-                handleWebVoid(voidData);
+            if (!/^\d+$/.test(transactionId)) {
+                alert('Transaction ID must contain only numbers');
+                return;
             }
-        }
-
-        function handleAndroidVoid(voidData) {
-            try {
-                // Register callback handler
-                window.handleVoidResult = function(response) {
-                    clearTimeout(voidTimeoutId);
-                    voidSpinner.style.display = 'none';
-                    
-                    try {
-                        const result = typeof response === 'string' ? JSON.parse(response) : response;
-                        
-                        if (result.status === 'success') {
-                            showVoidSuccess(result.data);
-                        } else {
-                            alert('Void failed: ' + (result.reason || 'Unknown error'));
-                            voidNowBtn.disabled = false;
-                        }
-                    } catch (e) {
-                        console.error('Error processing void response:', e);
-                        alert('Error processing void response');
-                        voidNowBtn.disabled = false;
-                    }
-                };
-                
-                // Try different Android interfaces
-                if (typeof Android !== 'undefined') {
-                    Android.initiateVoid(JSON.stringify(voidData));
-                } else if (typeof window.AndroidBridge !== 'undefined') {
-                    window.AndroidBridge.initiateVoid(JSON.stringify(voidData));
-                } else {
-                    // Fallback to deep link
-                    window.location.href = `bijlipay://void?${objectToQueryString(voidData)}`;
-                }
-                
-                // Set timeout
-                voidTimeoutId = setTimeout(() => {
-                    if (voidSpinner.style.display !== 'none') {
-                        voidSpinner.style.display = 'none';
-                        voidNowBtn.disabled = false;
-                        alert('Void timeout: No response from payment gateway');
-                    }
-                }, PAYMENT_TIMEOUT);
-            } catch (e) {
-                voidSpinner.style.display = 'none';
-                voidNowBtn.disabled = false;
-                console.error('Void error:', e);
-                alert('Error initiating void');
-            }
-        }
-
-        function handleWebVoid(voidData) {
-            // Simulate void processing
-            setTimeout(() => {
-                voidSpinner.style.display = 'none';
-                voidNowBtn.disabled = false;
-                
-                const isSuccess = Math.random() > 0.3; // 70% success rate
-                
-                if (isSuccess) {
-                    showVoidSuccess({
-                        originalTxnId: voidData.transactionId,
-                        voidTxnId: 'VTXN' + Math.floor(Math.random() * 1000000),
-                        amount: (Math.random() * 1000).toFixed(2),
-                        status: 'Voided',
-                        tid: 'TID' + Math.floor(Math.random() * 10000),
-                        mid: 'MID' + Math.floor(Math.random() * 10000),
-                        date: Date.now()
-                    });
-                } else {
-                    const reasons = [
-                        'Transaction not found',
-                        'Already voided',
-                        'Network error',
-                        'Void period expired'
-                    ];
-                    alert('Void failed: ' + reasons[Math.floor(Math.random() * reasons.length)]);
-                }
-            }, 2000);
-        }
-
-        function showPaymentSuccess(data) {
-            // Format the data
-            txnIdEl.textContent = data.txnId || 'N/A';
-            billNumEl.textContent = data.billNumber || 'N/A';
-            amountPaidEl.textContent = formatCurrency(data.amount);
-            statusEl.textContent = data.status || 'Approved';
-            paymentMethodEl.textContent = formatPaymentMethod(data.method);
-            tidEl.textContent = data.tid || 'N/A';
-            midEl.textContent = data.mid || 'N/A';
-            dateEl.textContent = formatDate(data.date);
             
-            // Show success container
-            paymentFormContainer.style.display = 'none';
-            paymentSuccess.style.display = 'block';
-        }
-
-        function showVoidSuccess(data) {
-            // Format the data
-            voidTxnIdEl.textContent = data.originalTxnId || data.transactionId || 'N/A';
-            voidRefIdEl.textContent = data.voidTxnId || data.referenceId || 'N/A';
-            voidAmountEl.textContent = formatCurrency(data.amount);
-            voidStatusEl.textContent = data.status || 'Voided';
-            voidTidEl.textContent = data.tid || 'N/A';
-            voidMidEl.textContent = data.mid || 'N/A';
-            voidDateEl.textContent = formatDate(data.date);
-            
-            // Show success container
+            // Hide form completely, show only success
             voidFormContainer.style.display = 'none';
             voidSuccess.style.display = 'block';
+            
+            // Create void URL for Android to intercept
+            const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
+            window.location.href = voidUrl;
         }
 
         function handleBackNavigation() {
             if (navigationStack.length > 1) {
-                navigationStack.pop();
-                showMainMenu();
+                const currentPage = navigationStack.pop();
+                
+                if (currentPage === 'void' || currentPage === 'payment') {
+                    showMainMenu();
+                }
             } else {
+                // Use standard web navigation as fallback
                 window.history.back();
             }
         }
-
-        function printReceipt() {
-            // In a real app, you might want to print just the invoice container
-            window.print();
+        
+        // Function to show payment success (called from Android via URL parameter)
+        function showPaymentSuccess(data) {
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                txnIdEl.textContent = params.get('txnId') || 'N/A';
+                billNumEl.textContent = params.get('billNumber') || 'N/A';
+                amountEl.textContent = '$' + (params.get('amount') || '0.00');
+                statusEl.textContent = params.get('status') || 'Approved';
+                dateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                paymentSuccess.style.display = 'block';
+                document.getElementById('paymentInvoice').style.display = 'block';
+                
+                // Hide form elements
+                document.querySelector('#paymentSection .form-group').style.display = 'none';
+                document.querySelector('.payment-methods').style.display = 'none';
+                payNowBtn.style.display = 'none';
+            } catch (e) {
+                console.error('Error processing payment success:', e);
+                // Fallback to default success display
+                paymentSuccess.style.display = 'block';
+            }
         }
-
-        function printVoidReceipt() {
-            // In a real app, you might want to print just the invoice container
-            window.print();
+        
+        // Function to show void success (called from Android via URL parameter)
+        function showVoidSuccess(data) {
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
+                voidAmountEl.textContent = '$' + (params.get('amount') || '0.00');
+                voidStatusEl.textContent = params.get('status') || 'Voided';
+                voidDateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                voidSuccess.style.display = 'block';
+                document.getElementById('voidInvoice').style.display = 'block';
+                
+                // Hide form container
+                voidFormContainer.style.display = 'none';
+            } catch (e) {
+                console.error('Error processing void success:', e);
+                // Fallback to default success display
+                voidSuccess.style.display = 'block';
+            }
         }
-
-        // Helper functions
-        function isAndroidApp() {
-            return /Android/i.test(navigator.userAgent) && 
-                   (typeof Android !== 'undefined' || typeof window.AndroidBridge !== 'undefined');
-        }
-
-        function objectToQueryString(obj) {
-            return Object.keys(obj).map(key => 
-                `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`
-            ).join('&');
-        }
-
-        function formatCurrency(amount) {
-            if (!amount) return '₹0.00';
-            const num = parseFloat(amount);
-            return '₹' + num.toFixed(2);
-        }
-
-        function formatPaymentMethod(method) {
-            const methods = {
-                'card': 'Card',
-                'qr': 'QR Code',
-                'upi': 'UPI'
-            };
-            return methods[method] || method || 'N/A';
-        }
-
-        function formatDate(timestamp) {
-            if (!timestamp) return new Date().toLocaleString();
-            
-            const date = new Date(Number(timestamp));
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-
-        // Process URL parameters on page load
-        function processUrlParameters() {
+        
+        // Check for success parameters in URL on page load
+        function checkForSuccess() {
             const urlParams = new URLSearchParams(window.location.search);
             
             if (urlParams.has('paymentSuccess')) {
-                try {
-                    const data = urlParams.get('paymentSuccess');
-                    showPaymentSection();
-                    showPaymentSuccess(JSON.parse(decodeURIComponent(data)));
-                    
-                    // Clean URL
-                    if (window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                } catch (e) {
-                    console.error('Error processing payment success:', e);
-                }
+                showPaymentSection();
+                showPaymentSuccess(urlParams.get('paymentSuccess'));
             } else if (urlParams.has('voidSuccess')) {
-                try {
-                    const data = urlParams.get('voidSuccess');
-                    showVoidSection();
-                    showVoidSuccess(JSON.parse(decodeURIComponent(data)));
-                    
-                    // Clean URL
-                    if (window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                } catch (e) {
-                    console.error('Error processing void success:', e);
-                }
+                showVoidSection();
+                showVoidSuccess(urlParams.get('voidSuccess'));
             }
         }
-
+        
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            validatePaymentForm();
-            validateVoidForm();
-            processUrlParameters();
-        });
+        validatePaymentForm();
+        checkForSuccess();
     </script>
 </body>
 </html>
