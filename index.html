@@ -340,6 +340,12 @@
             color: white;
             margin-top: 30px;
         }
+        
+        /* Form Container */
+        #voidFormContainer {
+            display: block;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -422,15 +428,18 @@
         
         <!-- Void Transaction Section -->
         <div id="voidSection" class="void-section">
-            <h2>Void Transaction</h2>
-            <div class="form-group">
-                <label for="transactionId">Transaction ID</label>
-                <input type="number" id="transactionId" placeholder="Enter transaction ID">
+            <!-- Form Container -->
+            <div id="voidFormContainer">
+                <h2>Void Transaction</h2>
+                <div class="form-group">
+                    <label for="transactionId">Transaction ID</label>
+                    <input type="number" id="transactionId" placeholder="Enter transaction ID">
+                </div>
+                <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
+                <button class="btn btn-back" id="backBtn">Back to Menu</button>
             </div>
-            <button class="btn btn-submit" id="voidNowBtn">Void Now</button>
-            <button class="btn btn-back" id="backBtn">Back to Menu</button>
             
-            <!-- Void Success Container -->
+            <!-- Success Container -->
             <div id="voidSuccess" class="success-container">
                 <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                     <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
@@ -444,11 +453,11 @@
                     <div class="invoice-details">
                         <div class="invoice-row">
                             <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="voidTxnId">123456789</span>
+                            <span class="invoice-value" id="voidTxnId">N/A</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Original Amount:</span>
-                            <span class="invoice-value" id="voidAmount">$100.00</span>
+                            <span class="invoice-value" id="voidAmount">$0.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
@@ -456,7 +465,7 @@
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="voidDate">2023-06-15 14:35</span>
+                            <span class="invoice-value" id="voidDate">2025-06-27 07:17</span>
                         </div>
                     </div>
                 </div>
@@ -484,6 +493,7 @@
         const voidSuccess = document.getElementById('voidSuccess');
         const paymentNewPaymentBtn = document.getElementById('paymentNewPaymentBtn');
         const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
+        const voidFormContainer = document.getElementById('voidFormContainer');
         
         // Invoice elements
         const txnIdEl = document.getElementById('txnId');
@@ -546,10 +556,7 @@
             paymentSection.style.display = 'none';
             voidSection.style.display = 'block';
             voidSuccess.style.display = 'none';
-            document.querySelector('#voidSection .form-group').style.display = 'block';
-            voidNowBtn.style.display = 'block';
-            backBtn.style.display = 'block';
-            document.getElementById('voidInvoice').style.display = 'none';
+            voidFormContainer.style.display = 'block';
             transactionIdInput.focus();
         }
 
@@ -561,6 +568,14 @@
             backArrow.style.display = 'none';
             billNumberInput.value = '';
             transactionIdInput.value = '';
+            
+            // Reset form visibility
+            if (voidFormContainer) {
+                voidFormContainer.style.display = 'block';
+            }
+            if (voidSuccess) {
+                voidSuccess.style.display = 'none';
+            }
         }
 
         function validatePaymentForm() {
@@ -599,10 +614,9 @@
                 return;
             }
             
-            // Hide all form elements
-            document.querySelector('#voidSection .form-group').style.display = 'none';
-            voidNowBtn.style.display = 'none';
-            backBtn.style.display = 'none';
+            // Hide form completely, show only success
+            voidFormContainer.style.display = 'none';
+            voidSuccess.style.display = 'block';
             
             // Create void URL for Android to intercept
             const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
@@ -637,6 +651,11 @@
                 // Show success and invoice
                 paymentSuccess.style.display = 'block';
                 document.getElementById('paymentInvoice').style.display = 'block';
+                
+                // Hide form elements
+                document.querySelector('#paymentSection .form-group').style.display = 'none';
+                document.querySelector('.payment-methods').style.display = 'none';
+                payNowBtn.style.display = 'none';
             } catch (e) {
                 console.error('Error processing payment success:', e);
                 // Fallback to default success display
@@ -658,6 +677,9 @@
                 // Show success and invoice
                 voidSuccess.style.display = 'block';
                 document.getElementById('voidInvoice').style.display = 'block';
+                
+                // Hide form container
+                voidFormContainer.style.display = 'none';
             } catch (e) {
                 console.error('Error processing void success:', e);
                 // Fallback to default success display
