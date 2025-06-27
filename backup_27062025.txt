@@ -50,12 +50,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 25px;
-            overflow: hidden; /* Prevents animations from overflowing container */
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Success Animation Styles */
@@ -64,6 +58,11 @@
             text-align: center;
             padding: 20px;
             animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .checkmark {
@@ -97,51 +96,6 @@
             animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
         }
         
-        /* Failure Animation Styles */
-        .failure-container {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .failmark {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: block;
-            stroke-width: 5;
-            stroke: #f44336;
-            stroke-miterlimit: 10;
-            margin: 0 auto 20px;
-            box-shadow: 0 0 0 rgba(244, 67, 54, 0.4);
-            animation: fill-fail 0.4s ease-in-out 0.4s forwards, 
-                       scale 0.3s ease-in-out 0.9s both;
-        }
-
-        .failmark__circle {
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            stroke-width: 5;
-            stroke-miterlimit: 10;
-            stroke: #f44336;
-            fill: none;
-            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-
-        .failmark__cross {
-            transform-origin: 50% 50%;
-            stroke-dasharray: 29;
-            stroke-dashoffset: 29;
-        }
-        
-        .failmark__cross_1 {
-             animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-        }
-        .failmark__cross_2 {
-             animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 1.0s forwards;
-        }
-
         @keyframes stroke {
             100% { stroke-dashoffset: 0; }
         }
@@ -155,19 +109,8 @@
             100% { box-shadow: inset 0 0 0 100px rgba(76, 175, 80, 0); }
         }
         
-        @keyframes fill-fail {
-            100% { box-shadow: inset 0 0 0 100px rgba(244, 67, 54, 0); }
-        }
-        
         .success-message {
             color: #4CAF50;
-            font-size: 20px;
-            font-weight: 600;
-            margin: 20px 0;
-        }
-
-        .failure-message {
-            color: #f44336;
             font-size: 20px;
             font-weight: 600;
             margin: 20px 0;
@@ -209,9 +152,6 @@
         .invoice-value {
             color: #333;
             font-weight: 600;
-            word-break: break-all;
-            text-align: right;
-            padding-left: 10px;
         }
         
         /* Form Styles */
@@ -395,10 +335,16 @@
             background-color: #757575;
         }
         
-        .btn-new-payment, .btn-try-again {
+        .btn-new-payment {
             background-color: #4CAF50;
             color: white;
             margin-top: 30px;
+        }
+        
+        /* Form Container */
+        #voidFormContainer {
+            display: block;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -418,25 +364,28 @@
         
         <!-- Payment Gateway Section -->
         <div id="paymentSection" class="payment-form" style="display: none;">
-            <div id="paymentFormContainer">
-                <h2 class="page-title">Payment Gateway</h2>
-                <div class="form-group">
-                    <label for="billNumber">Customer Bill Number</label>
-                    <input type="number" id="billNumber" placeholder="Enter bill number">
-                </div>
-                <div class="payment-methods">
-                    <h3>Payment Mode</h3>
-                    <div class="payment-method selected" data-method="card">
-                        <div class="payment-method-icon">🏦</div>
-                        <div class="payment-method-name">Card</div>
-                    </div>
-                    <div class="payment-method" data-method="qr">
-                        <div class="payment-method-icon">📱</div>
-                        <div class="payment-method-name">Scan QR</div>
-                    </div>
-                </div>
-                <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
+            <h2 class="page-title">Payment Gateway</h2>
+            
+            <div class="form-group">
+                <label for="billNumber">Customer Bill Number</label>
+                <input type="number" id="billNumber" placeholder="Enter bill number">
             </div>
+            
+            <div class="payment-methods">
+                <h3>Payment Mode</h3>
+                
+                <div class="payment-method selected" data-method="card">
+                    <div class="payment-method-icon">🏦</div>
+                    <div class="payment-method-name">Card</div>
+                </div>
+                
+                <div class="payment-method" data-method="qr">
+                    <div class="payment-method-icon">📱</div>
+                    <div class="payment-method-name">Scan QR</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-pay" id="payNowBtn" disabled>Pay Now</button>
             
             <!-- Payment Success Container -->
             <div id="paymentSuccess" class="success-container">
@@ -445,81 +394,41 @@
                     <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                 </svg>
                 <div class="success-message">Payment Successful!</div>
-                <div class="invoice-container">
+                
+                <!-- Invoice Details -->
+                <div id="paymentInvoice" class="invoice-container">
                     <div class="invoice-title">Transaction Details</div>
                     <div class="invoice-details">
                         <div class="invoice-row">
                             <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="txnId">N/A</span>
+                            <span class="invoice-value" id="txnId">123456789</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Bill Number:</span>
-                            <span class="invoice-value" id="billNum">N/A</span>
+                            <span class="invoice-value" id="billNum">987654321</span>
                         </div>
-                         <div class="invoice-row">
+                        <div class="invoice-row">
                             <span class="invoice-label">Amount:</span>
-                            <span class="invoice-value" id="amount">$0.00</span>
+                            <span class="invoice-value" id="amount">$100.00</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="status">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">TID:</span>
-                            <span class="invoice-value" id="tid">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">MID:</span>
-                            <span class="invoice-value" id="mid">N/A</span>
+                            <span class="invoice-value" id="status">Approved</span>
                         </div>
                         <div class="invoice-row">
                             <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="date">N/A</span>
+                            <span class="invoice-value" id="date">2023-06-15 14:30</span>
                         </div>
                     </div>
                 </div>
+                
                 <button class="btn btn-new-payment" id="paymentNewPaymentBtn">New Payment</button>
-            </div>
-
-             <!-- Payment Failure Container -->
-            <div id="paymentFailure" class="failure-container">
-                <svg class="failmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                    <circle class="failmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                    <path class="failmark__cross failmark__cross_1" fill="none" d="M16 16 36 36"/>
-                    <path class="failmark__cross failmark__cross_2" fill="none" d="M36 16 16 36"/>
-                </svg>
-                <div class="failure-message">Payment Failed!</div>
-                <div class="invoice-container">
-                    <div class="invoice-title">Transaction Details</div>
-                    <div class="invoice-details">
-                        <div class="invoice-row">
-                            <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="failTxnId">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Bill Number:</span>
-                            <span class="invoice-value" id="failBillNum">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="failStatus">Failed</span>
-                        </div>
-                         <div class="invoice-row">
-                            <span class="invoice-label">Reason:</span>
-                            <span class="invoice-value" id="failReason">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="failDate">N/A</span>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-back" id="paymentTryAgainBtn">Back to Menu</button>
             </div>
         </div>
         
         <!-- Void Transaction Section -->
         <div id="voidSection" class="void-section">
+            <!-- Form Container -->
             <div id="voidFormContainer">
                 <h2>Void Transaction</h2>
                 <div class="form-group">
@@ -530,14 +439,16 @@
                 <button class="btn btn-back" id="backBtn">Back to Menu</button>
             </div>
             
-            <!-- Void Success Container -->
+            <!-- Success Container -->
             <div id="voidSuccess" class="success-container">
                 <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                     <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
                     <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                 </svg>
                 <div class="success-message">Void Successful!</div>
-                <div class="invoice-container">
+                
+                <!-- Invoice Details -->
+                <div id="voidInvoice" class="invoice-container">
                     <div class="invoice-title">Void Transaction Details</div>
                     <div class="invoice-details">
                         <div class="invoice-row">
@@ -553,132 +464,64 @@
                             <span class="invoice-value" id="voidStatus">Voided</span>
                         </div>
                         <div class="invoice-row">
-                            <span class="invoice-label">TID:</span>
-                            <span class="invoice-value" id="voidTid">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">MID:</span>
-                            <span class="invoice-value" id="voidMid">N/A</span>
-                        </div>
-                        <div class="invoice-row">
                             <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="voidDate">N/A</span>
+                            <span class="invoice-value" id="voidDate">2025-06-27 07:17</span>
                         </div>
                     </div>
                 </div>
+                
                 <button class="btn btn-new-payment" id="voidNewPaymentBtn">New Payment</button>
-            </div>
-
-            <!-- Void Failure Container -->
-            <div id="voidFailure" class="failure-container">
-                <svg class="failmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                    <circle class="failmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                    <path class="failmark__cross failmark__cross_1" fill="none" d="M16 16 36 36"/>
-                    <path class="failmark__cross failmark__cross_2" fill="none" d="M36 16 16 36"/>
-                </svg>
-                <div class="failure-message">Void Failed!</div>
-                <div class="invoice-container">
-                    <div class="invoice-title">Transaction Details</div>
-                    <div class="invoice-details">
-                         <div class="invoice-row">
-                            <span class="invoice-label">Transaction ID:</span>
-                            <span class="invoice-value" id="voidFailTxnId">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Status:</span>
-                            <span class="invoice-value" id="voidFailStatus">Failed</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Reason:</span>
-                            <span class="invoice-value" id="voidFailReason">N/A</span>
-                        </div>
-                        <div class="invoice-row">
-                            <span class="invoice-label">Date:</span>
-                            <span class="invoice-value" id="voidFailDate">N/A</span>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-back" id="voidTryAgainBtn">Back to Menu</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DOM Elements ---
-        const mainMenu = document.getElementById('mainMenu');
-        const backArrow = document.getElementById('backArrow');
-        
-        // Buttons
+        // DOM Elements
         const paymentBtn = document.getElementById('paymentBtn');
         const voidBtn = document.getElementById('voidBtn');
         const voidNowBtn = document.getElementById('voidNowBtn');
         const backBtn = document.getElementById('backBtn');
-        const payNowBtn = document.getElementById('payNowBtn');
-        const paymentNewPaymentBtn = document.getElementById('paymentNewPaymentBtn');
-        const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
-        const paymentTryAgainBtn = document.getElementById('paymentTryAgainBtn');
-        const voidTryAgainBtn = document.getElementById('voidTryAgainBtn');
-
-        // Sections and Containers
+        const backArrow = document.getElementById('backArrow');
+        const mainMenu = document.getElementById('mainMenu');
         const paymentSection = document.getElementById('paymentSection');
-        const paymentFormContainer = document.getElementById('paymentFormContainer');
-        const paymentSuccess = document.getElementById('paymentSuccess');
-        const paymentFailure = document.getElementById('paymentFailure');
         const voidSection = document.getElementById('voidSection');
-        const voidFormContainer = document.getElementById('voidFormContainer');
-        const voidSuccess = document.getElementById('voidSuccess');
-        const voidFailure = document.getElementById('voidFailure');
-
-        // Inputs and Methods
         const transactionIdInput = document.getElementById('transactionId');
         const billNumberInput = document.getElementById('billNumber');
+        const payNowBtn = document.getElementById('payNowBtn');
         const paymentMethods = document.querySelectorAll('.payment-method');
+        const paymentSuccess = document.getElementById('paymentSuccess');
+        const voidSuccess = document.getElementById('voidSuccess');
+        const paymentNewPaymentBtn = document.getElementById('paymentNewPaymentBtn');
+        const voidNewPaymentBtn = document.getElementById('voidNewPaymentBtn');
+        const voidFormContainer = document.getElementById('voidFormContainer');
         
-        // Payment Success Invoice Elements
+        // Invoice elements
         const txnIdEl = document.getElementById('txnId');
         const billNumEl = document.getElementById('billNum');
         const amountEl = document.getElementById('amount');
         const statusEl = document.getElementById('status');
-        const tidEl = document.getElementById('tid');
-        const midEl = document.getElementById('mid');
         const dateEl = document.getElementById('date');
-
-        // Payment Failure Invoice Elements
-        const failTxnIdEl = document.getElementById('failTxnId');
-        const failBillNumEl = document.getElementById('failBillNum');
-        const failStatusEl = document.getElementById('failStatus');
-        const failReasonEl = document.getElementById('failReason');
-        const failDateEl = document.getElementById('failDate');
-        
-        // Void Success Invoice Elements
         const voidTxnIdEl = document.getElementById('voidTxnId');
         const voidAmountEl = document.getElementById('voidAmount');
         const voidStatusEl = document.getElementById('voidStatus');
-        const voidTidEl = document.getElementById('voidTid');
-        const voidMidEl = document.getElementById('voidMid');
         const voidDateEl = document.getElementById('voidDate');
-
-        // Void Failure Invoice Elements
-        const voidFailTxnIdEl = document.getElementById('voidFailTxnId');
-        const voidFailStatusEl = document.getElementById('voidFailStatus');
-        const voidFailReasonEl = document.getElementById('voidFailReason');
-        const voidFailDateEl = document.getElementById('voidFailDate');
-
-        // --- State ---
+        
+        // Selected payment method
         let selectedMethod = 'card';
+        
+        // Track navigation history
         let navigationStack = ['main'];
 
-        // --- Event Listeners ---
+        // Event Listeners
         paymentBtn.addEventListener('click', showPaymentSection);
         voidBtn.addEventListener('click', showVoidSection);
+        voidNowBtn.addEventListener('click', handleVoid);
         backBtn.addEventListener('click', showMainMenu);
         backArrow.addEventListener('click', handleBackNavigation);
-        
-        // Payment Flow
         billNumberInput.addEventListener('input', validatePaymentForm);
-        payNowBtn.addEventListener('click', processPayment);
         paymentNewPaymentBtn.addEventListener('click', showMainMenu);
-        paymentTryAgainBtn.addEventListener('click', showMainMenu);
+        voidNewPaymentBtn.addEventListener('click', showMainMenu);
+        
         paymentMethods.forEach(method => {
             method.addEventListener('click', () => {
                 paymentMethods.forEach(m => m.classList.remove('selected'));
@@ -686,46 +529,23 @@
                 selectedMethod = method.dataset.method;
             });
         });
-
-        // Void Flow
-        voidNowBtn.addEventListener('click', handleVoid);
-        voidNewPaymentBtn.addEventListener('click', showMainMenu);
-        voidTryAgainBtn.addEventListener('click', showMainMenu);
-
-        // --- Functions ---
         
-        function showMainMenu() {
-            navigationStack = ['main'];
-            paymentSection.style.display = 'none';
-            voidSection.style.display = 'none';
-            mainMenu.style.display = 'block';
-            backArrow.style.display = 'none';
-            // Clear input fields
-            billNumberInput.value = '';
-            transactionIdInput.value = '';
-            validatePaymentForm();
-        }
+        payNowBtn.addEventListener('click', processPayment);
 
-        function handleBackNavigation() {
-            if (navigationStack.length > 1) {
-                navigationStack.pop();
-                showMainMenu();
-            } else {
-                window.history.back(); // Fallback for browser navigation
-            }
-        }
-
+        // Functions
         function showPaymentSection() {
             navigationStack.push('payment');
             mainMenu.style.display = 'none';
             voidSection.style.display = 'none';
             paymentSection.style.display = 'block';
+            paymentSuccess.style.display = 'none';
             backArrow.style.display = 'block';
             
-            // Reset to form view
-            paymentFormContainer.style.display = 'block';
-            paymentSuccess.style.display = 'none';
-            paymentFailure.style.display = 'none';
+            // Reset form
+            document.querySelector('#paymentSection .form-group').style.display = 'block';
+            document.querySelector('.payment-methods').style.display = 'block';
+            payNowBtn.style.display = 'block';
+            document.getElementById('paymentInvoice').style.display = 'none';
             
             billNumberInput.focus();
         }
@@ -735,121 +555,154 @@
             mainMenu.style.display = 'none';
             paymentSection.style.display = 'none';
             voidSection.style.display = 'block';
-            backArrow.style.display = 'block';
-            
-            // Reset to form view
-            voidFormContainer.style.display = 'block';
             voidSuccess.style.display = 'none';
-            voidFailure.style.display = 'none';
-
+            voidFormContainer.style.display = 'block';
             transactionIdInput.focus();
         }
 
+        function showMainMenu() {
+            navigationStack = ['main'];
+            paymentSection.style.display = 'none';
+            voidSection.style.display = 'none';
+            mainMenu.style.display = 'block';
+            backArrow.style.display = 'none';
+            billNumberInput.value = '';
+            transactionIdInput.value = '';
+            
+            // Reset form visibility
+            if (voidFormContainer) {
+                voidFormContainer.style.display = 'block';
+            }
+            if (voidSuccess) {
+                voidSuccess.style.display = 'none';
+            }
+        }
+
         function validatePaymentForm() {
-            payNowBtn.disabled = billNumberInput.value.trim().length === 0;
+            const billNumber = billNumberInput.value.trim();
+            payNowBtn.disabled = billNumber.length === 0;
         }
 
         function processPayment() {
             const billNumber = billNumberInput.value.trim();
-            if (!billNumber) return;
+            
+            if (!billNumber) {
+                alert('Please enter a valid bill number');
+                return;
+            }
+            
+            // Hide all form elements
+            document.querySelector('#paymentSection .form-group').style.display = 'none';
+            document.querySelector('.payment-methods').style.display = 'none';
+            payNowBtn.style.display = 'none';
+            
+            // Create payment URL for Android to intercept
             const paymentUrl = `bijlipay://payment?billNumber=${encodeURIComponent(billNumber)}&method=${encodeURIComponent(selectedMethod)}`;
             window.location.href = paymentUrl;
         }
 
         function handleVoid() {
             const transactionId = transactionIdInput.value.trim();
-            if (!transactionId || !/^\d+$/.test(transactionId)) {
-                alert('Please enter a valid, numeric transaction ID');
+            
+            if (!transactionId) {
+                alert('Please enter a valid transaction ID');
                 return;
             }
+            
+            if (!/^\d+$/.test(transactionId)) {
+                alert('Transaction ID must contain only numbers');
+                return;
+            }
+            
+            // Hide form completely, show only success
+            voidFormContainer.style.display = 'none';
+            voidSuccess.style.display = 'block';
+            
+            // Create void URL for Android to intercept
             const voidUrl = `bijlipay://void?transactionId=${encodeURIComponent(transactionId)}`;
             window.location.href = voidUrl;
         }
 
-        function formatEpoch(epoch) {
-            if (!epoch || isNaN(epoch)) return new Date().toISOString().replace('T', ' ').substring(0, 16);
-            return new Date(Number(epoch)).toISOString().replace('T', ' ').substring(0, 16);
+        function handleBackNavigation() {
+            if (navigationStack.length > 1) {
+                const currentPage = navigationStack.pop();
+                
+                if (currentPage === 'void' || currentPage === 'payment') {
+                    showMainMenu();
+                }
+            } else {
+                // Use standard web navigation as fallback
+                window.history.back();
+            }
         }
         
+        // Function to show payment success (called from Android via URL parameter)
         function showPaymentSuccess(data) {
-            const params = new URLSearchParams(data);
-            
-            txnIdEl.textContent = params.get('txnId') || 'N/A';
-            billNumEl.textContent = params.get('billNumber') || 'N/A';
-            amountEl.textContent = '$' + (params.get('amount') || '0.00');
-            statusEl.textContent = params.get('status') || 'Approved';
-            tidEl.textContent = params.get('tid') || 'N/A';
-            midEl.textContent = params.get('mid') || 'N/A';
-            dateEl.textContent = formatEpoch(params.get('date'));
-            
-            paymentFormContainer.style.display = 'none';
-            paymentFailure.style.display = 'none';
-            paymentSuccess.style.display = 'block';
-        }
-
-        function showPaymentFailure(data) {
-            const params = new URLSearchParams(data);
-
-            failTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            failBillNumEl.textContent = params.get('billNumber') || 'N/A';
-            failStatusEl.textContent = params.get('status') || 'Failed';
-            failReasonEl.textContent = params.get('reason') || 'Unknown error';
-            failDateEl.textContent = formatEpoch(params.get('date'));
-
-            paymentFormContainer.style.display = 'none';
-            paymentSuccess.style.display = 'none';
-            paymentFailure.style.display = 'block';
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                txnIdEl.textContent = params.get('txnId') || 'N/A';
+                billNumEl.textContent = params.get('billNumber') || 'N/A';
+                amountEl.textContent = '$' + (params.get('amount') || '0.00');
+                statusEl.textContent = params.get('status') || 'Approved';
+                dateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                paymentSuccess.style.display = 'block';
+                document.getElementById('paymentInvoice').style.display = 'block';
+                
+                // Hide form elements
+                document.querySelector('#paymentSection .form-group').style.display = 'none';
+                document.querySelector('.payment-methods').style.display = 'none';
+                payNowBtn.style.display = 'none';
+            } catch (e) {
+                console.error('Error processing payment success:', e);
+                // Fallback to default success display
+                paymentSuccess.style.display = 'block';
+            }
         }
         
+        // Function to show void success (called from Android via URL parameter)
         function showVoidSuccess(data) {
-            const params = new URLSearchParams(data);
-            
-            voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            voidAmountEl.textContent = '$' + (params.get('amount') || '0.00');
-            voidStatusEl.textContent = params.get('status') || 'Voided';
-            voidTidEl.textContent = params.get('tid') || 'N/A';
-            voidMidEl.textContent = params.get('mid') || 'N/A';
-            voidDateEl.textContent = formatEpoch(params.get('date'));
-
-            voidFormContainer.style.display = 'none';
-            voidFailure.style.display = 'none';
-            voidSuccess.style.display = 'block';
-        }
-
-        function showVoidFailure(data) {
-            const params = new URLSearchParams(data);
-
-            voidFailTxnIdEl.textContent = params.get('txnId') || 'N/A';
-            voidFailStatusEl.textContent = params.get('status') || 'Failed';
-            voidFailReasonEl.textContent = params.get('reason') || 'Unknown error';
-            voidFailDateEl.textContent = formatEpoch(params.get('date'));
-
-            voidFormContainer.style.display = 'none';
-            voidSuccess.style.display = 'none';
-            voidFailure.style.display = 'block';
+            try {
+                const params = new URLSearchParams(data);
+                
+                // Update invoice details with data from Android
+                voidTxnIdEl.textContent = params.get('txnId') || 'N/A';
+                voidAmountEl.textContent = '$' + (params.get('amount') || '0.00');
+                voidStatusEl.textContent = params.get('status') || 'Voided';
+                voidDateEl.textContent = params.get('date') || new Date().toISOString().replace('T', ' ').substring(0, 16);
+                
+                // Show success and invoice
+                voidSuccess.style.display = 'block';
+                document.getElementById('voidInvoice').style.display = 'block';
+                
+                // Hide form container
+                voidFormContainer.style.display = 'none';
+            } catch (e) {
+                console.error('Error processing void success:', e);
+                // Fallback to default success display
+                voidSuccess.style.display = 'block';
+            }
         }
         
-        function processUrlCallback() {
+        // Check for success parameters in URL on page load
+        function checkForSuccess() {
             const urlParams = new URLSearchParams(window.location.search);
             
             if (urlParams.has('paymentSuccess')) {
                 showPaymentSection();
                 showPaymentSuccess(urlParams.get('paymentSuccess'));
-            } else if (urlParams.has('paymentFailure')) {
-                showPaymentSection();
-                showPaymentFailure(urlParams.get('paymentFailure'));
             } else if (urlParams.has('voidSuccess')) {
                 showVoidSection();
                 showVoidSuccess(urlParams.get('voidSuccess'));
-            } else if (urlParams.has('voidFailure')) {
-                showVoidSection();
-                showVoidFailure(urlParams.get('voidFailure'));
             }
         }
         
-        // --- Initialize ---
+        // Initialize
         validatePaymentForm();
-        processUrlCallback();
+        checkForSuccess();
     </script>
 </body>
 </html>
